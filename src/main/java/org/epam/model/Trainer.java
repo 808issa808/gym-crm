@@ -2,9 +2,11 @@ package org.epam.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.springframework.stereotype.Component;
 
 @Data
 @EqualsAndHashCode(callSuper=true)
+@Component
 public class Trainer extends User{
     private String specialization;
     private Long userId;
