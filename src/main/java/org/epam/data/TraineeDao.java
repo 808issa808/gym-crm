@@ -24,4 +24,9 @@ public class TraineeDao {
     public Collection<Trainee> findAll() {
         return storage.getTrainees().values();
     }
+
+    public void deleteById(Long id) {
+        storage.getTrainees().remove(id);
+    }
+
 }
