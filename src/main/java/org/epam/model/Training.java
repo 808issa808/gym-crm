@@ -13,7 +13,7 @@ import java.util.Date;
 @NoArgsConstructor
 public class Training {
     private String name;
-    private String type;
+    private TrainingType type;
     private Date date;
     private Duration duration;
     private Trainer trainer;
