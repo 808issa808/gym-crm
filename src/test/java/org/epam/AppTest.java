@@ -1,12 +1,11 @@
 package org.epam;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class AppTest {
-
+public class AppTest {
     @Test
-    void testApp() {
+    public void testApp() {
         assertTrue(true);
     }
 }

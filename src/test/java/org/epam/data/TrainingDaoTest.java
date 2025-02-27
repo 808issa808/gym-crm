@@ -3,6 +3,7 @@ package org.epam.data;
 import org.epam.model.Trainee;
 import org.epam.model.Trainer;
 import org.epam.model.Training;
+import org.epam.model.TrainingType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,9 +26,9 @@ class TrainingDaoTest {
 
     @Test
     void save_ShouldStoreTraining() {
-        Trainer trainer = new Trainer(1L, "Alice", "Smith", "asmith", "password", true, "Fitness");
+        Trainer trainer = new Trainer(1L, "Alice", "Smith", "asmith", "password", true, new TrainingType("Fitness"));
         Trainee trainee = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
-        Training training = new Training("Morning Workout", "Cardio", new Date(), Duration.ofHours(1), trainer, trainee);
+        Training training = new Training("Morning Workout", new TrainingType("Cardio"), new Date(), Duration.ofHours(1), trainer, trainee);
 
         trainingDao.save(training);
 
@@ -37,9 +38,9 @@ class TrainingDaoTest {
 
     @Test
     void findByTraineeId_ShouldReturnTraining_WhenExists() {
-        Trainer trainer = new Trainer(1L, "Alice", "Smith", "asmith", "password", true, "Fitness");
+        Trainer trainer = new Trainer(1L, "Alice", "Smith", "asmith", "password", true, new TrainingType("Fitness"));
         Trainee trainee = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
-        Training training = new Training("Morning Workout", "Cardio", new Date(), Duration.ofHours(1), trainer, trainee);
+        Training training = new Training("Morning Workout", new TrainingType("Cardio"), new Date(), Duration.ofHours(1), trainer, trainee);
 
         trainingDao.save(training);
 
@@ -56,13 +57,13 @@ class TrainingDaoTest {
 
     @Test
     void findAll_ShouldReturnAllTrainings() {
-        Trainer trainer1 = new Trainer(1L, "Alice", "Smith", "asmith", "password", true, "Fitness");
+        Trainer trainer1 = new Trainer(1L, "Alice", "Smith", "asmith", "password", true, new TrainingType("Fitness"));
         Trainee trainee1 = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
-        Training training1 = new Training("Morning Workout", "Cardio", new Date(), Duration.ofHours(1), trainer1, trainee1);
+        Training training1 = new Training("Morning Workout", new TrainingType("Cardio"), new Date(), Duration.ofHours(1), trainer1, trainee1);
 
-        Trainer trainer2 = new Trainer(2L, "Bob", "Johnson", "bjohnson", "password", true, "Yoga");
+        Trainer trainer2 = new Trainer(2L, "Bob", "Johnson", "bjohnson", "password", true, new TrainingType("Yoga"));
         Trainee trainee2 = new Trainee(2L, "Jane", "Doe", "janed", "password", true, new Date(), "456 Avenue");
-        Training training2 = new Training("Evening Yoga", "Yoga", new Date(), Duration.ofHours(1), trainer2, trainee2);
+        Training training2 = new Training("Evening Yoga", new TrainingType("Yoga"), new Date(), Duration.ofHours(1), trainer2, trainee2);
 
         trainingDao.save(training1);
         trainingDao.save(training2);

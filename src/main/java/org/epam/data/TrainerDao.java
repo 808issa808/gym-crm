@@ -24,4 +24,9 @@ public class TrainerDao {
         return storage.getTrainers().values();
     }
 
+    public boolean existsByUsername(String username) {
+        return storage.getTrainers().values().stream()
+                .anyMatch(trainer -> trainer.getUsername().equals(username));
+    }
+
 }
