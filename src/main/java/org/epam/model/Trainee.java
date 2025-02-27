@@ -2,12 +2,14 @@ package org.epam.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 @Component
 public class Trainee extends User {
     private Date dateOfBirth;
