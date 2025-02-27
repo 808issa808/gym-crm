@@ -2,11 +2,13 @@ package org.epam.model;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
 public class Trainee extends User {
     private Date dateOfBirth;
     private String address;
