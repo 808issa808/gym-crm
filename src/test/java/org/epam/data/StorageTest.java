@@ -3,6 +3,7 @@ package org.epam.data;
 import org.epam.model.Trainee;
 import org.epam.model.Trainer;
 import org.epam.model.Training;
+import org.epam.model.TrainingType;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -35,7 +36,7 @@ class StorageTest {
     @Test
     void givenStorage_whenAddTrainer_thenTrainerIsStored() {
         Storage storage = new Storage();
-        Trainer trainer = new Trainer(2L, "Alice", "Smith", "alicesmith", "password", true, "Yoga");
+        Trainer trainer = new Trainer(2L, "Alice", "Smith", "alicesmith", "password", true, new TrainingType("Yoga"));
 
         storage.getTrainers().put(2L, trainer);
 
@@ -43,10 +44,11 @@ class StorageTest {
         assertEquals(trainer, storage.getTrainers().get(2L));
     }
 
+
     @Test
     void givenStorage_whenAddTraining_thenTrainingIsStored() {
         Storage storage = new Storage();
-        Trainer trainer = new Trainer(3L, "Bob", "Brown", "bobbrown", "password", true, "Boxing");
+        Trainer trainer = new Trainer(3L, "Bob", "Brown", "bobbrown", "password", true, new TrainingType("Boxing"));
         Trainee trainee = new Trainee(4L, "Emily", "Clark", "emilyclark", "password", true, new Date(), "456 Avenue");
         Training training = new Training("Boxing Basics", "Combat", new Date(), Duration.ofHours(1), trainer, trainee);
 

@@ -24,4 +24,9 @@ public class TraineeDao {
     public Collection<Trainee> findAll() {
         return storage.getTrainees().values();
     }
+
+    public boolean existsByUsername(String username) {
+        return storage.getTrainees().values().stream()
+                .anyMatch(trainee -> trainee.getUsername().equals(username));
+    }
 }
