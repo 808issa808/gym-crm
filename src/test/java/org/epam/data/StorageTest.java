@@ -50,7 +50,7 @@ class StorageTest {
         Storage storage = new Storage();
         Trainer trainer = new Trainer(3L, "Bob", "Brown", "bobbrown", "password", true, new TrainingType("Boxing"));
         Trainee trainee = new Trainee(4L, "Emily", "Clark", "emilyclark", "password", true, new Date(), "456 Avenue");
-        Training training = new Training("Boxing Basics", "Combat", new Date(), Duration.ofHours(1), trainer, trainee);
+        Training training = new Training("Boxing Basics", new TrainingType("Combat"), new Date(), Duration.ofHours(1), trainer, trainee);
 
         storage.getTrainings().put(5L, training);
 
