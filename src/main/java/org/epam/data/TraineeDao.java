@@ -25,6 +25,9 @@ public class TraineeDao {
         return storage.getTrainees().values();
     }
 
+    public void deleteById(Long id) {
+        storage.getTrainees().remove(id);
+    }
     public boolean existsByUsername(String username) {
         return storage.getTrainees().values().stream()
                 .anyMatch(trainee -> trainee.getUsername().equals(username));
