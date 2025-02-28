@@ -1,0 +1,8 @@
+trainee,John,Doe
+trainee,Alice,Johnson
+trainee,Bob,Smith
+trainer,Michael,Brown
+trainer,Emily,Davis
+training,Yoga,Yoga
+training,Boxing,Boxing
+training,Crossfit,Crossfit
