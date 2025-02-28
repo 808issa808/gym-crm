@@ -10,8 +10,12 @@ import java.util.Optional;
 
 @Service
 public class TrainingService {
-    @Autowired
+
     private TrainingDao trainingDao;
+    @Autowired
+    public void setTrainingDao(TrainingDao trainingDao) {
+        this.trainingDao = trainingDao;
+    }
 
     public void save(Training training) {
         trainingDao.save(training);

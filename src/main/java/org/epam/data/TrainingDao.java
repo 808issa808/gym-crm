@@ -1,5 +1,6 @@
 package org.epam.data;
 
+import lombok.extern.slf4j.Slf4j;
 import org.epam.model.Training;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -8,8 +9,9 @@ import java.util.Collection;
 import java.util.Optional;
 
 @Repository
+@Slf4j
 public class TrainingDao {
-    private  Storage storage;
+    private Storage storage;
 
     @Autowired
     public void setStorage(Storage storage) {
@@ -17,13 +19,20 @@ public class TrainingDao {
     }
 
     public void save(Training training) {
-        storage.getTrainings().put(storage.nextTrainingId(), training);
+        Long trainingId = storage.nextTrainingId();
+        storage.getTrainings().put(trainingId, training);
+        log.info("Saved training with ID: {}", trainingId);
     }
+
     public Optional<Training> findByTraineeId(Long traineeId) {
-        return Optional.ofNullable(storage.getTrainings().get(traineeId));
+        Optional<Training> training = Optional.ofNullable(storage.getTrainings().get(traineeId));
+        log.info("Find by trainee ID: {}, found: {}", traineeId, training.isPresent());
+        return training;
     }
 
     public Collection<Training> findAll() {
-        return storage.getTrainings().values();
+        Collection<Training> trainings = storage.getTrainings().values();
+        log.info("Retrieved all trainings, count: {}", trainings.size());
+        return trainings;
     }
 }

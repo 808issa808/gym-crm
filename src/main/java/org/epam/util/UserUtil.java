@@ -1,8 +1,11 @@
 package org.epam.util;
 
+import org.springframework.stereotype.Component;
+
 import java.security.SecureRandom;
 import java.util.Random;
 
+@Component
 public class UserUtil {
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final Random RANDOM = new SecureRandom();
