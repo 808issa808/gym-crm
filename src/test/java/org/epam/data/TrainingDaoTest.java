@@ -21,7 +21,8 @@ class TrainingDaoTest {
     @BeforeEach
     void setUp() {
         storage = new Storage();
-        trainingDao = new TrainingDao(storage);
+        trainingDao = new TrainingDao();
+        trainingDao.setStorage(storage);
     }
 
     @Test

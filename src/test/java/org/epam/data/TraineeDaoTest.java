@@ -11,49 +11,97 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TraineeDaoTest {
+
     private TraineeDao traineeDao;
     private Storage storage;
 
     @BeforeEach
     void setUp() {
         storage = new Storage();
-        traineeDao = new TraineeDao(storage);
+        traineeDao = new TraineeDao();
+        traineeDao.setStorage(storage);
     }
 
     @Test
-    void save_ShouldStoreTrainee() {
-        Trainee trainee = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
+    void givenNewTrainee_whenSave_thenTraineeIsStoredWithId() {
+        Trainee trainee = new Trainee(null, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street");
+
         traineeDao.save(trainee);
 
+        assertNotNull(trainee.getUserId());
+        assertEquals(1L, trainee.getUserId());
         assertEquals(1, storage.getTrainees().size());
-        assertTrue(storage.getTrainees().containsKey(trainee.getUserId()));
+        assertEquals(1L, storage.getTraineeUsernameToId().get("johndoe"));
     }
 
     @Test
-    void findById_ShouldReturnTrainee_WhenExists() {
-        Trainee trainee = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
+    void givenExistingTrainee_whenUpdate_thenTraineeIsUpdated() {
+        Trainee trainee = new Trainee(null, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street");
         traineeDao.save(trainee);
 
-        Optional<Trainee> found = traineeDao.findById(1L);
-        assertTrue(found.isPresent());
-        assertEquals("jdoe", found.get().getUsername());
+        trainee.setAddress("456 Avenue");
+        Trainee updatedTrainee = traineeDao.update(trainee);
+
+        assertEquals("456 Avenue", updatedTrainee.getAddress());
+        assertEquals("456 Avenue", storage.getTrainees().get(1L).getAddress());
     }
 
     @Test
-    void findById_ShouldReturnEmpty_WhenNotExists() {
-        Optional<Trainee> found = traineeDao.findById(999L);
-        assertTrue(found.isEmpty());
+    void givenNonExistingTrainee_whenUpdate_thenThrowException() {
+        Trainee trainee = new Trainee(99L, "Jane", "Doe", "janedoe", "password", true, new Date(), "789 Street");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> traineeDao.update(trainee));
+        assertEquals("Trainee with id 99 does not exist", exception.getMessage());
     }
 
     @Test
-    void findAll_ShouldReturnAllTrainees() {
-        Trainee trainee1 = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
-        Trainee trainee2 = new Trainee(2L, "Jane", "Doe", "janedoe", "password", true, new Date(), "456 Avenue");
-        traineeDao.save(trainee1);
-        traineeDao.save(trainee2);
+    void givenExistingTrainee_whenFindById_thenReturnTrainee() {
+        Trainee trainee = new Trainee(null, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street");
+        traineeDao.save(trainee);
 
-        Collection<Trainee> trainees = traineeDao.findAll();
-        assertEquals(2, trainees.size());
+        Optional<Trainee> foundTrainee = traineeDao.findById(1L);
+
+        assertTrue(foundTrainee.isPresent());
+        assertEquals("John", foundTrainee.get().getFirstName());
+    }
+
+    @Test
+    void givenNonExistingTrainee_whenFindById_thenReturnEmpty() {
+        Optional<Trainee> foundTrainee = traineeDao.findById(1L);
+        assertFalse(foundTrainee.isPresent());
+    }
+
+    @Test
+    void givenMultipleTrainees_whenFindAll_thenReturnAll() {
+        traineeDao.save(new Trainee(null, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street"));
+        traineeDao.save(new Trainee(null, "Alice", "Smith", "alicesmith", "password", true, new Date(), "456 Avenue"));
+
+        Collection<Trainee> allTrainees = traineeDao.findAll();
+
+        assertEquals(2, allTrainees.size());
+    }
+
+    @Test
+    void givenExistingTrainee_whenDeleteById_thenTraineeIsRemoved() {
+        Trainee trainee = new Trainee(null, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street");
+        traineeDao.save(trainee);
+
+        traineeDao.deleteById(1L);
+
+        assertFalse(storage.getTrainees().containsKey(1L));
+        assertFalse(storage.getTraineeUsernameToId().containsKey("johndoe"));
+    }
+
+    @Test
+    void givenUsername_whenExistsByUsername_thenReturnTrue() {
+        traineeDao.save(new Trainee(null, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street"));
+
+        assertTrue(traineeDao.existsByUsername("johndoe"));
+    }
+
+    @Test
+    void givenUsername_whenExistsByUsername_thenReturnFalse() {
+        assertFalse(traineeDao.existsByUsername("nonexistent"));
     }
     @Test
     void deleteById_ShouldRemoveTrainee_WhenExists() {
