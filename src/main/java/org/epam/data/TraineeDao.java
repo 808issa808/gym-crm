@@ -1,21 +1,35 @@
 package org.epam.data;
 
 
-import lombok.RequiredArgsConstructor;
 import org.epam.model.Trainee;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.Optional;
 
 @Repository
-@RequiredArgsConstructor
 public class TraineeDao {
-    private final Storage storage;
+    private  Storage storage;
 
-    public void save(Trainee trainee) {
-        storage.getTrainees().put(trainee.getUserId(), trainee);
+    @Autowired
+    public void setStorage(Storage storage) {
+        this.storage = storage;
     }
+    public void save(Trainee trainee) {
+        trainee.setUserId(storage.nextTraineeId());
+        storage.getTrainees().put(trainee.getUserId(), trainee);
+        storage.getTraineeUsernameToId().put(trainee.getUsername(), trainee.getUserId());
+    }
+    public Trainee update(Trainee trainee) {
+        if (!storage.getTrainees().containsKey(trainee.getUserId())) {
+            throw new IllegalArgumentException("Trainee with id " + trainee.getUserId() + " does not exist");
+        }
+        storage.getTrainees().put(trainee.getUserId(), trainee);
+        storage.getTraineeUsernameToId().put(trainee.getUsername(), trainee.getUserId());
+        return trainee;
+    }
+
 
     public Optional<Trainee> findById(Long id) {
         return Optional.ofNullable(storage.getTrainees().get(id));
@@ -26,10 +40,10 @@ public class TraineeDao {
     }
 
     public void deleteById(Long id) {
+        storage.getTraineeUsernameToId().remove(storage.getTrainees().get(id).getUsername());
         storage.getTrainees().remove(id);
     }
     public boolean existsByUsername(String username) {
-        return storage.getTrainees().values().stream()
-                .anyMatch(trainee -> trainee.getUsername().equals(username));
+        return storage.getTraineeUsernameToId().containsKey(username);
     }
 }
