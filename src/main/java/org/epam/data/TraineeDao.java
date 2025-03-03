@@ -46,6 +46,9 @@ public class TraineeDao {
     }
 
     public void deleteById(Long id) {
+        if (!storage.getTrainees().containsKey(id)) {
+            throw new IllegalArgumentException("Trainee with id " + id + " does not exist and can not be deleted");
+        }
         log.info("Deleting trainee by id: {}", id);
         storage.getTraineeUsernameToId().remove(storage.getTrainees().get(id).getUsername());
         storage.getTrainees().remove(id);

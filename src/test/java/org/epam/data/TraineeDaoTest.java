@@ -114,14 +114,14 @@ class TraineeDaoTest {
         assertTrue(traineeDao.findById(1L).isEmpty());
     }
 
-//    @Test
-//    void deleteById_ShouldDoNothing_WhenNotExists() {
-//        Trainee trainee = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
-//        traineeDao.save(trainee);
-//
-//        traineeDao.deleteById(999L); // ID не существует
-//
-//        assertEquals(1, storage.getTrainees().size());
-//        assertTrue(traineeDao.findById(1L).isPresent());
-//    }
+    @Test
+    void deleteById_ShouldDoNothing_WhenNotExists() {
+        Trainee trainee = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
+        traineeDao.save(trainee);
+
+        assertThrows(IllegalArgumentException.class,()-> traineeDao.deleteById(999L)); // ID не существует
+
+        assertEquals(1, storage.getTrainees().size());
+        assertTrue(traineeDao.findById(1L).isPresent());
+    }
 }
