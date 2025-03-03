@@ -58,7 +58,7 @@ class StorageTest {
     void whenTrainingAdded_thenStorageContainsIt() {
         Trainer trainer = new Trainer(3L, "Bob", "Brown", "bobbrown", "password", true, new TrainingType("Boxing"));
         Trainee trainee = new Trainee(4L, "Emily", "Clark", "emilyclark", "password", true, new Date(), "456 Avenue");
-        Training training = new Training("Boxing Basics", new TrainingType("Combat"), new Date(), Duration.ofHours(1), trainer, trainee);
+        Training training = new Training("Boxing Basics", new TrainingType("Combat"), new Date(), 1, trainer, trainee);
 
         storage.getTrainings().put(5L, training);
 
@@ -96,7 +96,7 @@ class StorageTest {
 
     @Test
     void whenTrainingRemoved_thenStorageDoesNotContainIt() {
-        Training training = new Training("Boxing Basics", new TrainingType("Combat"), new Date(), Duration.ofHours(1), null, null);
+        Training training = new Training("Boxing Basics", new TrainingType("Combat"), new Date(), 1, null, null);
 
         storage.getTrainings().put(3L, training);
         storage.getTrainings().remove(3L);

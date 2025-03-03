@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.util.Date;
 @Data
 @Component
@@ -29,7 +28,7 @@ public class Training {
         this.trainee = trainee;
     }
 
-    private Duration duration;
+    private Integer duration;
     private Trainer trainer;
     private Trainee trainee;
 }

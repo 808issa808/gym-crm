@@ -11,7 +11,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,7 +28,7 @@ class TrainingServiceTest {
     void save_ShouldCallDaoSave() {
         Trainer trainer = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, new TrainingType("Fitness"));
         Trainee trainee = new Trainee(2L, "Bob", "Green", "bgreen", "password", true, new Date(), "123 Main St");
-        Training training = new Training("Yoga", new TrainingType("Group"), new Date(), Duration.ofHours(1), trainer, trainee);
+        Training training = new Training("Yoga", new TrainingType("Group"), new Date(), 1, trainer, trainee);
 
         trainingService.create(training);
 
@@ -40,7 +39,7 @@ class TrainingServiceTest {
     void findByTraineeId_ShouldReturnTraining_WhenExists() {
         Trainer trainer = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, new TrainingType("Fitness"));
         Trainee trainee = new Trainee(2L, "Bob", "Green", "bgreen", "password", true, new Date(), "123 Main St");
-        Training training = new Training("Yoga", new TrainingType("Group"), new Date(), Duration.ofHours(1), trainer, trainee);
+        Training training = new Training("Yoga", new TrainingType("Group"), new Date(), 1, trainer, trainee);
 
         when(trainingDao.findByTraineeId(2L)).thenReturn(Optional.of(training));
 
@@ -64,8 +63,8 @@ class TrainingServiceTest {
         Trainer trainer = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, new TrainingType("Fitness"));
         Trainee trainee1 = new Trainee(2L, "Bob", "Green", "bgreen", "password", true, new Date(), "123 Main St");
         Trainee trainee2 = new Trainee(3L, "Charlie", "White", "cwhite", "password", true, new Date(), "456 Elm St");
-        Training training1 = new Training("Yoga", new TrainingType("Group"), new Date(), Duration.ofHours(1), trainer, trainee1);
-        Training training2 = new Training("Pilates", new TrainingType("Group"), new Date(), Duration.ofHours(1), trainer, trainee2);
+        Training training1 = new Training("Yoga", new TrainingType("Group"), new Date(), 1, trainer, trainee1);
+        Training training2 = new Training("Pilates", new TrainingType("Group"), new Date(), 1, trainer, trainee2);
 
         List<Training> trainings = Arrays.asList(training1, training2);
 
