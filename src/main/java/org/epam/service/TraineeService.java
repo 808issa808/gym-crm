@@ -12,14 +12,9 @@ import java.util.Optional;
 @Service
 public class TraineeService {
     private TraineeDao traineeDao;
-    private UserUtil userUtil;
     @Autowired
     public void setTraineeDao(TraineeDao traineeDao) {
         this.traineeDao = traineeDao;
-    }
-    @Autowired
-    public void setUserUtil(UserUtil userUtil) {
-        this.userUtil = userUtil;
     }
 
     public void save(Trainee trainee) {

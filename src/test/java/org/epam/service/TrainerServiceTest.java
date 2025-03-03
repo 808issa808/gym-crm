@@ -4,15 +4,18 @@ import org.epam.data.TrainerDao;
 import org.epam.model.Trainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TrainerServiceTest {
 
     @Mock
@@ -21,48 +24,49 @@ class TrainerServiceTest {
     @InjectMocks
     private TrainerService trainerService;
 
+    private Trainer trainer;
+
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
+        trainer = new Trainer();
+        trainer.setFirstName("John");
+        trainer.setLastName("Doe");
     }
 
     @Test
-    void save_ShouldCallDaoSave() {
-        Trainer trainer = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, "Java");
+    void save_ShouldGenerateUsernameAndPasswordAndSaveTrainer() {
+        when(trainerDao.existsByUsername(anyString())).thenReturn(false);
+
         trainerService.save(trainer);
-        verify(trainerDao, times(1)).save(trainer);
+
+        assertNotNull(trainer.getUsername());
+        assertNotNull(trainer.getPassword());
+        verify(trainerDao).save(trainer);
     }
 
     @Test
     void findById_ShouldReturnTrainer_WhenExists() {
-        Trainer trainer = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, "Java");
         when(trainerDao.findById(1L)).thenReturn(Optional.of(trainer));
 
-        Optional<Trainer> found = trainerService.findById(1L);
+        Optional<Trainer> foundTrainer = trainerService.findById(1L);
 
-        assertTrue(found.isPresent());
-        assertEquals("abrown", found.get().getUsername());
+        assertTrue(foundTrainer.isPresent());
+        assertEquals(trainer, foundTrainer.get());
     }
 
     @Test
-    void findById_ShouldReturnEmpty_WhenNotExists() {
-        when(trainerDao.findById(999L)).thenReturn(Optional.empty());
+    void findById_ShouldReturnEmpty_WhenTrainerDoesNotExist() {
+        when(trainerDao.findById(1L)).thenReturn(Optional.empty());
 
-        Optional<Trainer> found = trainerService.findById(999L);
+        Optional<Trainer> foundTrainer = trainerService.findById(1L);
 
-        assertTrue(found.isEmpty());
+        assertFalse(foundTrainer.isPresent());
     }
 
     @Test
-    void findAll_ShouldReturnAllTrainers() {
-        Trainer trainer1 = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, "Java");
-        Trainer trainer2 = new Trainer(2L, "Bob", "Green", "bgreen", "password", false, "Python");
-        List<Trainer> trainers = Arrays.asList(trainer1, trainer2);
+    void findAll_ShouldReturnListOfTrainers() {
+        when(trainerDao.findAll()).thenReturn(Arrays.asList(trainer));
 
-        when(trainerDao.findAll()).thenReturn(trainers);
-
-        Collection<Trainer> result = trainerService.findAll();
-
-        assertEquals(2, result.size());
+        assertEquals(1, trainerService.findAll().size());
     }
 }

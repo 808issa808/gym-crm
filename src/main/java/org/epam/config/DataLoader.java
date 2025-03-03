@@ -1,12 +1,11 @@
 package org.epam.config;
 
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.epam.model.*;
 import org.epam.service.TraineeService;
 import org.epam.service.TrainerService;
 import org.epam.service.TrainingService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Properties;
 
+@Slf4j
 @Component
 public class DataLoader {
-    private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
-
     private TraineeService traineeService;
     private TrainerService trainerService;
     private TrainingService trainingService;
@@ -49,7 +47,7 @@ public class DataLoader {
             String storageFile = prop.getProperty("storage.file.path");
 
             try (BufferedReader reader = new BufferedReader(new FileReader(storageFile))) {
-                logger.info("{} file has been accessed", storageFile);
+                log.info("{} file has been accessed", storageFile);
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] fields = line.split(",");
@@ -72,12 +70,12 @@ public class DataLoader {
                             training.setType(new TrainingType(fields[2]));
                             trainingService.save(training);
                         }
-                        default -> logger.warn("Unknown entry type: {}", fields[0]);
+                        default -> log.warn("Unknown entry type: {}", fields[0]);
                     }
                 }
             }
         } catch (IOException e) {
-            logger.error("IOException occurred while working with file: initialData.txt", e);
+            log.error("IOException occurred while working with file: initialData.txt", e);
             throw new RuntimeException("Error reading initialData.txt", e);
         }
     }

@@ -4,15 +4,17 @@ import org.epam.data.TraineeDao;
 import org.epam.model.Trainee;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class TraineeServiceTest {
 
     @Mock
@@ -21,28 +23,34 @@ class TraineeServiceTest {
     @InjectMocks
     private TraineeService traineeService;
 
+    private Trainee trainee;
+
     @BeforeEach
     void setUp() {
-            MockitoAnnotations.openMocks(this);
+        trainee = new Trainee(1L, "John", "Doe", null, null, true, new Date(), "123 Street");
     }
 
     @Test
-    void save_ShouldCallDaoSave() {
-        Trainee trainee = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
+    void save_ShouldGenerateUsernameAndPassword_AndCallDaoSave() {
+        when(traineeDao.existsByUsername(anyString())).thenReturn(false);
+
         traineeService.save(trainee);
+
+        assertNotNull(trainee.getUsername());
+        assertNotNull(trainee.getPassword());
+        assertFalse(trainee.getPassword().isEmpty());
+
         verify(traineeDao, times(1)).save(trainee);
-//        ыьвдыл?
     }
 
     @Test
     void findById_ShouldReturnTrainee_WhenExists() {
-        Trainee trainee = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
         when(traineeDao.findById(1L)).thenReturn(Optional.of(trainee));
 
         Optional<Trainee> found = traineeService.findById(1L);
 
         assertTrue(found.isPresent());
-        assertEquals("jdoe", found.get().getUsername());
+        assertEquals(trainee, found.get());
     }
 
     @Test
@@ -56,20 +64,29 @@ class TraineeServiceTest {
 
     @Test
     void findAll_ShouldReturnAllTrainees() {
-        Trainee trainee1 = new Trainee(1L, "John", "Doe", "jdoe", "password", true, new Date(), "123 Street");
-        Trainee trainee2 = new Trainee(2L, "Jane", "Doe", "janedoe", "password", true, new Date(), "456 Avenue");
-        List<Trainee> trainees = Arrays.asList(trainee1, trainee2);
+        List<Trainee> trainees = Arrays.asList(trainee, new Trainee(2L, "Jane", "Doe", "janedoe", "password", true, new Date(), "456 Avenue"));
 
         when(traineeDao.findAll()).thenReturn(trainees);
 
         Collection<Trainee> result = traineeService.findAll();
 
         assertEquals(2, result.size());
+        assertTrue(result.containsAll(trainees));
     }
 
     @Test
     void deleteById_ShouldCallDaoDeleteById() {
         traineeService.deleteById(1L);
         verify(traineeDao, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void update_ShouldCallDaoUpdate() {
+        when(traineeDao.update(trainee)).thenReturn(trainee);
+
+        Trainee updated = traineeService.update(trainee);
+
+        assertEquals(trainee, updated);
+        verify(traineeDao, times(1)).update(trainee);
     }
 }
