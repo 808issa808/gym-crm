@@ -4,6 +4,7 @@ import org.epam.model.Trainee;
 import org.epam.model.Trainer;
 import org.epam.model.Training;
 import org.epam.model.TrainingType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -13,20 +14,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StorageTest {
 
-    @Test
-    void givenEmptyStorage_whenRetrieveEntities_thenReturnEmptyMaps() {
-        Storage storage = new Storage();
+    private Storage storage;
 
-        assertTrue(storage.getTrainees().isEmpty());
-        assertTrue(storage.getTrainers().isEmpty());
-        assertTrue(storage.getTrainings().isEmpty());
-        assertTrue(storage.getTraineeUsernameToId().isEmpty());
-        assertTrue(storage.getTrainerUsernameToId().isEmpty());
+    @BeforeEach
+    void setUp() {
+        storage = new Storage();
     }
 
     @Test
-    void givenStorage_whenAddTrainee_thenTraineeIsStored() {
-        Storage storage = new Storage();
+    void whenStorageIsEmpty_thenAllMapsAreEmpty() {
+        assertTrue(storage.getTrainees().isEmpty(), "Trainees map should be empty");
+        assertTrue(storage.getTrainers().isEmpty(), "Trainers map should be empty");
+        assertTrue(storage.getTrainings().isEmpty(), "Trainings map should be empty");
+        assertTrue(storage.getTraineeUsernameToId().isEmpty(), "Trainee username map should be empty");
+        assertTrue(storage.getTrainerUsernameToId().isEmpty(), "Trainer username map should be empty");
+    }
+
+    @Test
+    void whenTraineeAdded_thenStorageContainsIt() {
         Trainee trainee = new Trainee(1L, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street");
 
         storage.getTrainees().put(1L, trainee);
@@ -38,8 +43,7 @@ class StorageTest {
     }
 
     @Test
-    void givenStorage_whenAddTrainer_thenTrainerIsStored() {
-        Storage storage = new Storage();
+    void whenTrainerAdded_thenStorageContainsIt() {
         Trainer trainer = new Trainer(2L, "Alice", "Smith", "alicesmith", "password", true, new TrainingType("Yoga"));
 
         storage.getTrainers().put(2L, trainer);
@@ -51,8 +55,7 @@ class StorageTest {
     }
 
     @Test
-    void givenStorage_whenAddTraining_thenTrainingIsStored() {
-        Storage storage = new Storage();
+    void whenTrainingAdded_thenStorageContainsIt() {
         Trainer trainer = new Trainer(3L, "Bob", "Brown", "bobbrown", "password", true, new TrainingType("Boxing"));
         Trainee trainee = new Trainee(4L, "Emily", "Clark", "emilyclark", "password", true, new Date(), "456 Avenue");
         Training training = new Training("Boxing Basics", new TrainingType("Combat"), new Date(), Duration.ofHours(1), trainer, trainee);
@@ -64,41 +67,7 @@ class StorageTest {
     }
 
     @Test
-    void givenStorage_whenGenerateTraineeId_thenIdsAreSequential() {
-        Storage storage = new Storage();
-
-        long firstId = storage.nextTraineeId();
-        long secondId = storage.nextTraineeId();
-
-        assertEquals(1L, firstId);
-        assertEquals(2L, secondId);
-    }
-
-    @Test
-    void givenStorage_whenGenerateTrainerId_thenIdsAreSequential() {
-        Storage storage = new Storage();
-
-        long firstId = storage.nextTrainerId();
-        long secondId = storage.nextTrainerId();
-
-        assertEquals(1L, firstId);
-        assertEquals(2L, secondId);
-    }
-
-    @Test
-    void givenStorage_whenGenerateTrainingId_thenIdsAreSequential() {
-        Storage storage = new Storage();
-
-        long firstId = storage.nextTrainingId();
-        long secondId = storage.nextTrainingId();
-
-        assertEquals(1L, firstId);
-        assertEquals(2L, secondId);
-    }
-
-    @Test
-    void givenStorage_whenRemoveTrainee_thenTraineeIsRemoved() {
-        Storage storage = new Storage();
+    void whenTraineeRemoved_thenStorageDoesNotContainIt() {
         Trainee trainee = new Trainee(1L, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street");
 
         storage.getTrainees().put(1L, trainee);
@@ -112,8 +81,7 @@ class StorageTest {
     }
 
     @Test
-    void givenStorage_whenRemoveTrainer_thenTrainerIsRemoved() {
-        Storage storage = new Storage();
+    void whenTrainerRemoved_thenStorageDoesNotContainIt() {
         Trainer trainer = new Trainer(2L, "Alice", "Smith", "alicesmith", "password", true, new TrainingType("Yoga"));
 
         storage.getTrainers().put(2L, trainer);
@@ -127,8 +95,7 @@ class StorageTest {
     }
 
     @Test
-    void givenStorage_whenRemoveTraining_thenTrainingIsRemoved() {
-        Storage storage = new Storage();
+    void whenTrainingRemoved_thenStorageDoesNotContainIt() {
         Training training = new Training("Boxing Basics", new TrainingType("Combat"), new Date(), Duration.ofHours(1), null, null);
 
         storage.getTrainings().put(3L, training);

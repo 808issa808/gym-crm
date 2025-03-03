@@ -37,7 +37,7 @@ class TrainerServiceTest {
     void save_ShouldGenerateUsernameAndPasswordAndSaveTrainer() {
         when(trainerDao.existsByUsername(anyString())).thenReturn(false);
 
-        trainerService.save(trainer);
+        trainerService.create(trainer);
 
         assertNotNull(trainer.getUsername());
         assertNotNull(trainer.getPassword());

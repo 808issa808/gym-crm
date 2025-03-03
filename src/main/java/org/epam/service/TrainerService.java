@@ -13,7 +13,7 @@ import java.util.Optional;
 public class TrainerService {
     private TrainerDao trainerDao;
 
-    public void save(Trainer trainer) {
+    public void create(Trainer trainer) {
 
         String username = UserUtil.generateUsername(trainer.getFirstName(), trainer.getLastName(), trainerDao::existsByUsername);
         String password = UserUtil.generatePassword();

@@ -22,4 +22,14 @@ public class Trainee extends User {
         this.dateOfBirth = dateOfBirth;
         this.address = address;
     }
+
+    @Override
+    public String toString() {
+        return "Trainee{" +
+                "dateOfBirth=" + dateOfBirth +
+                ", address='" + address + '\'' +
+                ", userId=" + userId + '\'' +
+                ", username='" + getUsername() +
+                '}';
+    }
 }

@@ -19,8 +19,8 @@ public class GymFacade {
     private final TrainerService trainerService;
     private final TrainingService trainingService;
 
-    public void saveTrainee(Trainee trainee) {
-        traineeService.save(trainee);
+    public void createTrainee(Trainee trainee) {
+        traineeService.create(trainee);
     }
 
     public Trainee updateTrainee(Trainee trainee) {
@@ -39,8 +39,8 @@ public class GymFacade {
         traineeService.deleteById(id);
     }
 
-    public void saveTrainer(Trainer trainer) {
-        trainerService.save(trainer);
+    public void createTrainer(Trainer trainer) {
+        trainerService.create(trainer);
     }
 
     public Optional<Trainer> findTrainerById(Long id) {
@@ -51,8 +51,8 @@ public class GymFacade {
         return trainerService.findAll();
     }
 
-    public void saveTraining(Training training) {
-        trainingService.save(training);
+    public void createTraining(Training training) {
+        trainingService.create(training);
     }
 
     public Optional<Training> findTrainingByTraineeId(Long traineeId) {

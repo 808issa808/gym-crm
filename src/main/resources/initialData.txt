@@ -1,8 +1,8 @@
-trainee,John,Doe
-trainee,Alice,Johnson
-trainee,Bob,Smith
-trainer,Michael,Brown
-trainer,Emily,Davis
+trainee,John,Doe,john.doe,password123
+trainee,Alice,Johnson,alice.johnson,passAlice
+trainee,Bob,Smith,bob.smith,secureBob
+trainer,Michael,Brown,michael.brown,trainerPass,Yoga
+trainer,Emily,Davis,emily.davis,emilyTrainer,Boxing
 training,Yoga,Yoga
 training,Boxing,Boxing
 training,Crossfit,Crossfit

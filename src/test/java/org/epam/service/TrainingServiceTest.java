@@ -31,7 +31,7 @@ class TrainingServiceTest {
         Trainee trainee = new Trainee(2L, "Bob", "Green", "bgreen", "password", true, new Date(), "123 Main St");
         Training training = new Training("Yoga", new TrainingType("Group"), new Date(), Duration.ofHours(1), trainer, trainee);
 
-        trainingService.save(training);
+        trainingService.create(training);
 
         verify(trainingDao, times(1)).save(training);
     }

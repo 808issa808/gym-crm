@@ -4,9 +4,7 @@ import org.epam.model.Trainee;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -76,9 +74,11 @@ class TraineeDaoTest {
         traineeDao.save(new Trainee(null, "John", "Doe", "johndoe", "password", true, new Date(), "123 Street"));
         traineeDao.save(new Trainee(null, "Alice", "Smith", "alicesmith", "password", true, new Date(), "456 Avenue"));
 
-        Collection<Trainee> allTrainees = traineeDao.findAll();
+        List<Trainee> allTrainees = new ArrayList<>(traineeDao.findAll());
 
         assertEquals(2, allTrainees.size());
+        assertEquals(1L, allTrainees.get(0).getUserId());
+        assertEquals(2L, allTrainees.get(1).getUserId());
     }
 
     @Test

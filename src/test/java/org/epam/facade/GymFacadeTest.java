@@ -57,9 +57,9 @@ class GymFacadeTest {
     // --- Тесты для Trainee ---
 
     @Test
-    void saveTrainee_ShouldCallServiceMethod() {
-        gymFacade.saveTrainee(testTrainee);
-        verify(traineeService, times(1)).save(testTrainee);
+    void createTrainee_ShouldCallServiceMethod() {
+        gymFacade.createTrainee(testTrainee);
+        verify(traineeService, times(1)).create(testTrainee);
     }
 
     @Test
@@ -103,9 +103,9 @@ class GymFacadeTest {
     // --- Тесты для Trainer ---
 
     @Test
-    void saveTrainer_ShouldCallServiceMethod() {
-        gymFacade.saveTrainer(testTrainer);
-        verify(trainerService, times(1)).save(testTrainer);
+    void createTrainer_ShouldCallServiceMethod() {
+        gymFacade.createTrainer(testTrainer);
+        verify(trainerService, times(1)).create(testTrainer);
     }
 
     @Test
@@ -133,9 +133,9 @@ class GymFacadeTest {
     // --- Тесты для Training ---
 
     @Test
-    void saveTraining_ShouldCallServiceMethod() {
-        gymFacade.saveTraining(testTraining);
-        verify(trainingService, times(1)).save(testTraining);
+    void createTraining_ShouldCallServiceMethod() {
+        gymFacade.createTraining(testTraining);
+        verify(trainingService, times(1)).create(testTraining);
     }
 
     @Test

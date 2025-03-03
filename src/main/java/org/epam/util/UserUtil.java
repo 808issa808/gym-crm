@@ -4,13 +4,14 @@ import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 import java.util.Random;
+import java.util.function.Predicate;
 
 @Component
 public class UserUtil {
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final Random RANDOM = new SecureRandom();
 
-    public static String generateUsername(String firstName, String lastName, java.util.function.Predicate<String> usernameExists) {
+    public static String generateUsername(String firstName, String lastName, Predicate<String> usernameExists) {
         String baseUsername = firstName + "." + lastName;
         String username = baseUsername;
         int counter = 1;

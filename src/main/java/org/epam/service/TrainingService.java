@@ -17,7 +17,7 @@ public class TrainingService {
         this.trainingDao = trainingDao;
     }
 
-    public void save(Training training) {
+    public void create(Training training) {
         trainingDao.save(training);
     }
 

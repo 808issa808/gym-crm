@@ -17,7 +17,7 @@ public class TraineeService {
         this.traineeDao = traineeDao;
     }
 
-    public void save(Trainee trainee) {
+    public void create(Trainee trainee) {
         String username = UserUtil.generateUsername(trainee.getFirstName(), trainee.getLastName(), traineeDao::existsByUsername);
         String password = UserUtil.generatePassword();
         trainee.setUsername(username);

@@ -32,16 +32,33 @@ class TraineeServiceTest {
 
     @Test
     void save_ShouldGenerateUsernameAndPassword_AndCallDaoSave() {
-        when(traineeDao.existsByUsername(anyString())).thenReturn(false);
+        Set<String> existingUsernames = new HashSet<>();
 
-        traineeService.save(trainee);
+        when(traineeDao.existsByUsername(anyString()))
+                .thenAnswer(invocation -> existingUsernames.contains(invocation.getArgument(0)));
 
-        assertNotNull(trainee.getUsername());
+        doAnswer(invocation -> {
+            Trainee t = invocation.getArgument(0);
+            existingUsernames.add(t.getUsername());
+            return null;
+        }).when(traineeDao).save(any(Trainee.class));
+
+
+        traineeService.create(trainee);
+        assertEquals("John.Doe", trainee.getUsername());
         assertNotNull(trainee.getPassword());
+        assertEquals(10, trainee.getPassword().length());
         assertFalse(trainee.getPassword().isEmpty());
 
-        verify(traineeDao, times(1)).save(trainee);
+        traineeService.create(trainee);
+        assertEquals("John.Doe1", trainee.getUsername());
+
+        traineeService.create(trainee);
+        assertEquals("John.Doe2", trainee.getUsername());
+
+        verify(traineeDao, times(3)).save(trainee);
     }
+
 
     @Test
     void findById_ShouldReturnTrainee_WhenExists() {
