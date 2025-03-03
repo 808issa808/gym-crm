@@ -7,7 +7,6 @@ import org.epam.model.TrainingType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
