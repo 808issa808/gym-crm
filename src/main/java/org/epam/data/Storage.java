@@ -1,6 +1,7 @@
 package org.epam.data;
 
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.epam.model.*;
 import org.springframework.stereotype.Component;
@@ -17,32 +18,13 @@ import java.util.Properties;
 
 @Slf4j
 @Component
+@Getter
 public class Storage {
     private final Map<Long, Trainee> trainees = new HashMap<>();
     private final Map<Long, Trainer> trainers = new HashMap<>();
     private final Map<Long, Training> trainings = new HashMap<>();
     private final Map<String, Long> traineeUsernameToId = new HashMap<>();
     private final Map<String, Long> trainerUsernameToId = new HashMap<>();
-
-    public Map<Long, Trainee> getTrainees() {
-        return trainees;
-    }
-
-    public Map<Long, Trainer> getTrainers() {
-        return trainers;
-    }
-
-    public Map<Long, Training> getTrainings() {
-        return trainings;
-    }
-
-    public Map<String, Long> getTraineeUsernameToId() {
-        return traineeUsernameToId;
-    }
-
-    public Map<String, Long> getTrainerUsernameToId() {
-        return trainerUsernameToId;
-    }
 
     public long nextTraineeId() {
         return trainees.keySet().stream().max(Long::compare).orElse(0L) + 1;
