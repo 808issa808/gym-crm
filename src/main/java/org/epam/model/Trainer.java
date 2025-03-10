@@ -1,21 +1,20 @@
 package org.epam.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.List;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 @NoArgsConstructor
-@Component
+@AllArgsConstructor
+@Entity
+@Table(name = "Trainers")
 public class Trainer extends User {
-    private TrainingType specialization;
-    private Long userId;
 
-    public Trainer(Long userId, String firstName, String lastName, String username, String password, boolean active, TrainingType specialization) {
-        super(firstName, lastName, username, password, active);
-        this.userId = userId;
-        this.specialization = specialization;
-    }
+    @Column(name = "Specialization")
+    private String specialization;
+
+    @ManyToMany(mappedBy = "trainers")
+    private List<Trainee> trainees;
 }
