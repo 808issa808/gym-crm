@@ -1,34 +1,38 @@
 package org.epam.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
+import jakarta.persistence.*;
+import lombok.*;
 import java.util.Date;
-@Data
-@Component
-@AllArgsConstructor
-@NoArgsConstructor
-public class Training {
-    private String name;
-    private TrainingType type;
-    private Date date;
-    @Autowired
-    public void setType(TrainingType type) {
-        this.type = type;
-    }
-    @Autowired
-    public void setTrainer(Trainer trainer) {
-        this.trainer = trainer;
-    }
-    @Autowired
-    public void setTrainee(Trainee trainee) {
-        this.trainee = trainee;
-    }
 
-    private Integer duration;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "Trainings")
+public class Training {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "TrainingName", nullable = false)
+    private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "TrainingTypeId", referencedColumnName = "id", nullable = false)
+    private TrainingType type;
+
+    @ManyToOne
+    @JoinColumn(name = "TrainerId", referencedColumnName = "id", nullable = false)
     private Trainer trainer;
+
+    @ManyToOne
+    @JoinColumn(name = "TraineeId", referencedColumnName = "id", nullable = false)
     private Trainee trainee;
+
+    @Column(name = "TrainingDate", nullable = false)
+    private Date date;
+
+    @Column(name = "TrainingDuration", nullable = false)
+    private Integer duration;
 }
