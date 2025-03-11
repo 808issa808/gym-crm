@@ -30,4 +30,8 @@ public class UserUtil {
         }
         return password.toString();
     }
+    public static boolean passwordFormatValidator(String password)
+    {
+        return password.length()>=10;
+    }
 }

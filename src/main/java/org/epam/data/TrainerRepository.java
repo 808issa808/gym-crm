@@ -1,11 +1,16 @@
 package org.epam.data;
 
 import org.epam.model.Trainer;
-import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface TrainerRepository extends JpaRepository<Trainer,Long> {
-    public boolean existsByUsername(String username);
+public interface TrainerRepository {
+    boolean existsByUsername(String username);
+    Trainer create(Trainer trainer);
     Optional<Trainer> findByUsername(String username);
+    Trainer changePassword(String password);
+    Trainer update(Trainer trainer);
+    Trainer switchActivate(Trainer trainer);
+
+
 }

@@ -9,30 +9,30 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Trainings")
+@Table(name = "Trainings") // Исправлено
 public class Training {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "TrainingName", nullable = false)
+    @Column(name = "training_name", nullable = false)
     private String name;
 
-    @ManyToOne
-    @JoinColumn(name = "TrainingTypeId", referencedColumnName = "id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "training_type_id", referencedColumnName = "id", nullable = false)
     private TrainingType type;
 
-    @ManyToOne
-    @JoinColumn(name = "TrainerId", referencedColumnName = "id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainer_id", referencedColumnName = "id", nullable = false)
     private Trainer trainer;
 
-    @ManyToOne
-    @JoinColumn(name = "TraineeId", referencedColumnName = "id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "trainee_id", referencedColumnName = "id", nullable = false)
     private Trainee trainee;
 
-    @Column(name = "TrainingDate", nullable = false)
+    @Column(name = "training_date", nullable = false)
     private Date date;
 
-    @Column(name = "TrainingDuration", nullable = false)
+    @Column(name = "training_duration", nullable = false)
     private Integer duration;
 }

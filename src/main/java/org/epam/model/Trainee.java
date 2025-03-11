@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "Trainees")
+@PrimaryKeyJoinColumn(name = "id")
 public class Trainee extends User {
 
     @Column(name = "DateOfBirth")
@@ -22,7 +23,7 @@ public class Trainee extends User {
 
     @ManyToMany
     @JoinTable(
-            name = "Trainee_Trainer",
+            name = "trainer_trainee",
             joinColumns = @JoinColumn(name = "trainee_id"),
             inverseJoinColumns = @JoinColumn(name = "trainer_id")
     )

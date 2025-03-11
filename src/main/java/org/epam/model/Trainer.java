@@ -10,10 +10,11 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "Trainers")
+@PrimaryKeyJoinColumn(name = "id")
 public class Trainer extends User {
 
-    @Column(name = "Specialization")
-    private String specialization;
+    @ManyToOne
+    private TrainingType specialization;
 
     @ManyToMany(mappedBy = "trainers")
     private List<Trainee> trainees;

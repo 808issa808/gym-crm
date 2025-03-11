@@ -1,11 +1,18 @@
 package org.epam.data;
 
 import org.epam.model.Trainee;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.epam.model.Trainer;
 
+import java.util.List;
 import java.util.Optional;
 
-public interface TraineeRepository extends JpaRepository<Trainee, Long> {
-     public boolean existsByUsername(String username);
-     Optional<Trainee> findByUsername(String username);
+public interface TraineeRepository {
+    boolean existsByUsername(String username);
+    Trainee create(Trainee trainee);
+    Optional<Trainee> findByUsername(String username);
+    Trainee changePassword(String password);
+    Trainee update(Trainee trainee);
+    Trainee switchActivate(Trainee trainee);
+    List<Trainer> getNotMineTrainersByUsername(String username);
+    Trainee updateTrainersList(Trainee trainee, List<Trainer> updatedTrainers);
 }
