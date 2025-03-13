@@ -1,15 +1,17 @@
 package org.epam.service;
 
-import org.epam.data.TrainerDao;
+import org.epam.data.impl.TrainerRepositoryImpl;
 import org.epam.model.Trainer;
+import org.epam.util.Authenticator;
+import org.epam.util.UserUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +21,7 @@ import static org.mockito.Mockito.*;
 class TrainerServiceTest {
 
     @Mock
-    private TrainerDao trainerDao;
+    private TrainerRepositoryImpl trainerRepository;
 
     @InjectMocks
     private TrainerService trainerService;
@@ -31,42 +33,101 @@ class TrainerServiceTest {
         trainer = new Trainer();
         trainer.setFirstName("John");
         trainer.setLastName("Doe");
+        trainer.setUsername("trainer1");
+        trainer.setPassword("securePass");
+        trainer.setActive(true);
     }
 
     @Test
-    void save_ShouldGenerateUsernameAndPasswordAndSaveTrainer() {
-        when(trainerDao.existsByUsername(anyString())).thenReturn(false);
+    void testCreate() {
+        when(trainerRepository.existsByUsername(anyString())).thenReturn(false);
+        when(trainerRepository.create(any(Trainer.class))).thenAnswer(invocation -> {
+            Trainer createdTrainer = invocation.getArgument(0);
+            createdTrainer.setId(1L);
+            return createdTrainer;
+        });
 
-        trainerService.create(trainer);
+        Trainer createdTrainer = trainerService.create(trainer);
 
-        assertNotNull(trainer.getUsername());
-        assertNotNull(trainer.getPassword());
-        verify(trainerDao).save(trainer);
+        assertNotNull(createdTrainer, "Созданный тренер не должен быть null");
+        assertNotNull(createdTrainer.getUsername(), "Username должен быть установлен");
+        assertNotNull(createdTrainer.getPassword(), "Пароль должен быть установлен");
+        assertTrue(createdTrainer.isActive(), "Тренер должен быть активным");
+
+        verify(trainerRepository).existsByUsername(anyString());
+        verify(trainerRepository).create(any(Trainer.class));
     }
 
     @Test
-    void findById_ShouldReturnTrainer_WhenExists() {
-        when(trainerDao.findById(1L)).thenReturn(Optional.of(trainer));
+    void testFindByUsername() {
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class)) {
+            mockedAuthenticator.when(() -> Authenticator.authenticateUser("trainer1", "securePass", trainerRepository::findByUsername)).then(invocation -> null);
 
-        Optional<Trainer> foundTrainer = trainerService.findById(1L);
+            when(trainerRepository.findByUsername("trainer1")).thenReturn(Optional.of(trainer));
 
-        assertTrue(foundTrainer.isPresent());
-        assertEquals(trainer, foundTrainer.get());
+            Trainer found = trainerService.findByUsername("trainer1", "securePass", "trainer1");
+
+            assertEquals(trainer, found);
+            verify(trainerRepository, times(1)).findByUsername("trainer1");
+        }
     }
 
     @Test
-    void findById_ShouldReturnEmpty_WhenTrainerDoesNotExist() {
-        when(trainerDao.findById(1L)).thenReturn(Optional.empty());
+    void testChangePassword() {
+        String newPassword = "newSecurePass";
 
-        Optional<Trainer> foundTrainer = trainerService.findById(1L);
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class); MockedStatic<UserUtil> mockedUserUtil = mockStatic(UserUtil.class)) {
 
-        assertFalse(foundTrainer.isPresent());
+            mockedAuthenticator.when(() -> Authenticator.authenticateUser("trainer1", "securePass", trainerRepository::findByUsername)).then(invocation -> null);
+            mockedUserUtil.when(() -> UserUtil.passwordFormatValidator(newPassword)).thenReturn(true);
+
+            when(trainerRepository.changePassword(trainer, newPassword)).thenReturn(trainer);
+
+            Trainer updatedTrainer = trainerService.changePassword(trainer, newPassword);
+
+            assertEquals(trainer, updatedTrainer);
+            verify(trainerRepository).changePassword(trainer, newPassword);
+        }
     }
 
     @Test
-    void findAll_ShouldReturnListOfTrainers() {
-        when(trainerDao.findAll()).thenReturn(Arrays.asList(trainer));
+    void testChangePassword_InvalidFormat() {
+        String invalidPassword = "short";
 
-        assertEquals(1, trainerService.findAll().size());
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class); MockedStatic<UserUtil> mockedUserUtil = mockStatic(UserUtil.class)) {
+
+            mockedAuthenticator.when(() -> Authenticator.authenticateUser("trainer1", "securePass", trainerRepository::findByUsername)).then(invocation -> null);
+            mockedUserUtil.when(() -> UserUtil.passwordFormatValidator(invalidPassword)).thenReturn(false);
+
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> trainerService.changePassword(trainer, invalidPassword));
+
+            assertEquals("New Password should be at least 10 chars long", exception.getMessage());
+            verify(trainerRepository, never()).changePassword(any(), any());
+        }
+    }
+
+    @Test
+    void testUpdate() {
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class)) {
+            mockedAuthenticator.when(() -> Authenticator.authenticateUser("trainer1", "securePass", trainerRepository::findByUsername)).then(invocation -> null);
+
+            when(trainerRepository.update(trainer)).thenReturn(trainer);
+
+            Trainer updatedTrainer = trainerService.update(trainer);
+
+            assertEquals(trainer, updatedTrainer);
+            verify(trainerRepository).update(trainer);
+        }
+    }
+
+    @Test
+    void testSwitchActivate() {
+        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class)) {
+            mockedAuthenticator.when(() -> Authenticator.authenticateUser("trainer1", "securePass", trainerRepository::findByUsername)).then(invocation -> null);
+
+            trainerService.switchActivate(trainer);
+
+            verify(trainerRepository).switchActivate("trainer1");
+        }
     }
 }

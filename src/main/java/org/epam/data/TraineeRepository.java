@@ -8,11 +8,20 @@ import java.util.Optional;
 
 public interface TraineeRepository {
     boolean existsByUsername(String username);
-    Trainee create(Trainee trainee);
+
     Optional<Trainee> findByUsername(String username);
-    Trainee changePassword(String password);
-    Trainee update(Trainee trainee);
-    Trainee switchActivate(Trainee trainee);
+
     List<Trainer> getNotMineTrainersByUsername(String username);
+
+    Trainee create(Trainee trainee);
+
+    Trainee update(Trainee trainee);
+
+    Trainee changePassword(Trainee trainee, String password);
+
     Trainee updateTrainersList(Trainee trainee, List<Trainer> updatedTrainers);
+
+    void switchActivate(String username);
+
+    void deleteByUsername(String Username);
 }

@@ -1,77 +1,58 @@
 package org.epam.service;
 
-import org.epam.data.TrainingDao;
-import org.epam.model.Trainee;
-import org.epam.model.Trainer;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import org.epam.data.impl.TraineeRepositoryImpl;
+import org.epam.data.impl.TrainerRepositoryImpl;
+import org.epam.data.impl.TrainingRepositoryImpl;
 import org.epam.model.Training;
-import org.epam.model.TrainingType;
+import org.epam.model.User;
+import org.epam.util.Authenticator;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;;
 
 @ExtendWith(MockitoExtension.class)
 class TrainingServiceTest {
+
     @Mock
-    private TrainingDao trainingDao;
+    private TrainingRepositoryImpl trainingRepository;
+
+    @Mock
+    private TraineeRepositoryImpl traineeRepository;
+
+    @Mock
+    private TrainerRepositoryImpl trainerRepository;
 
     @InjectMocks
     private TrainingService trainingService;
 
-    @Test
-    void save_ShouldCallDaoSave() {
-        Trainer trainer = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, new TrainingType("Fitness"));
-        Trainee trainee = new Trainee(2L, "Bob", "Green", "bgreen", "password", true, new Date(), "123 Main St");
-        Training training = new Training("Yoga", new TrainingType("Group"), new Date(), 1, trainer, trainee);
+    private Training training;
 
+    private MockedStatic<Authenticator> mockedAuthenticator;
+
+    @BeforeEach
+    void setUp() {
+        training = new Training();
+        training.setId(1L);
+        mockedAuthenticator = mockStatic(Authenticator.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        mockedAuthenticator.close();
+    }
+
+    @Test
+    void testCreate() {
         trainingService.create(training);
-
-        verify(trainingDao, times(1)).save(training);
+        verify(trainingRepository).create(training);
     }
 
-    @Test
-    void findByTraineeId_ShouldReturnTraining_WhenExists() {
-        Trainer trainer = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, new TrainingType("Fitness"));
-        Trainee trainee = new Trainee(2L, "Bob", "Green", "bgreen", "password", true, new Date(), "123 Main St");
-        Training training = new Training("Yoga", new TrainingType("Group"), new Date(), 1, trainer, trainee);
-
-        when(trainingDao.findByTraineeId(2L)).thenReturn(Optional.of(training));
-
-        Optional<Training> found = trainingService.findByTraineeId(2L);
-
-        assertTrue(found.isPresent());
-        assertEquals("Yoga", found.get().getName());
-    }
-
-    @Test
-    void findByTraineeId_ShouldReturnEmpty_WhenNotExists() {
-        when(trainingDao.findByTraineeId(999L)).thenReturn(Optional.empty());
-
-        Optional<Training> found = trainingService.findByTraineeId(999L);
-
-        assertTrue(found.isEmpty());
-    }
-
-    @Test
-    void findAll_ShouldReturnAllTrainings() {
-        Trainer trainer = new Trainer(1L, "Alice", "Brown", "abrown", "password", true, new TrainingType("Fitness"));
-        Trainee trainee1 = new Trainee(2L, "Bob", "Green", "bgreen", "password", true, new Date(), "123 Main St");
-        Trainee trainee2 = new Trainee(3L, "Charlie", "White", "cwhite", "password", true, new Date(), "456 Elm St");
-        Training training1 = new Training("Yoga", new TrainingType("Group"), new Date(), 1, trainer, trainee1);
-        Training training2 = new Training("Pilates", new TrainingType("Group"), new Date(), 1, trainer, trainee2);
-
-        List<Training> trainings = Arrays.asList(training1, training2);
-
-        when(trainingDao.findAll()).thenReturn(trainings);
-
-        Collection<Training> result = trainingService.findAll();
-
-        assertEquals(2, result.size());
-    }
 }

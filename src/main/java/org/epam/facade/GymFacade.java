@@ -9,8 +9,8 @@ import org.epam.service.TrainerService;
 import org.epam.service.TrainingService;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.Date;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +19,7 @@ public class GymFacade {
     private final TrainerService trainerService;
     private final TrainingService trainingService;
 
+    // ---- Тренируемые (Trainees) ----
     public void createTrainee(Trainee trainee) {
         traineeService.create(trainee);
     }
@@ -27,39 +28,61 @@ public class GymFacade {
         return traineeService.update(trainee);
     }
 
-    public Optional<Trainee> findTraineeById(Long id) {
-        return traineeService.findById(id);
+    public Trainee getTrainee(String username, String password, String searchedUsername) {
+        return traineeService.findByUsername(username, password, searchedUsername);
     }
 
-    public Collection<Trainee> findAllTrainees() {
-        return traineeService.findAll();
+    public void deleteTrainee(String username, String password) {
+        traineeService.deleteTraineeByUsername(username, password);
     }
 
-    public void deleteTraineeById(Long id) {
-        traineeService.deleteById(id);
+    public void changeTraineePassword(Trainee trainee, String newPassword) {
+        traineeService.changePassword(trainee, newPassword);
     }
 
+    public void activateOrDeactivateTrainee(Trainee trainee) {
+        traineeService.switchActivate(trainee);
+    }
+
+    public List<Trainer> getAvailableTrainersForTrainee(String username, String password) {
+        return traineeService.getNotMineTrainersByUsername(username, password);
+    }
+
+    public Trainee updateTraineeTrainersList(String username, String password, List<Trainer> updatedTrainers) {
+        return traineeService.updateTrainersList(username, password, updatedTrainers);
+    }
+
+    // ---- Тренеры (Trainers) ----
     public void createTrainer(Trainer trainer) {
         trainerService.create(trainer);
     }
 
-    public Optional<Trainer> findTrainerById(Long id) {
-        return trainerService.findById(id);
+    public Trainer getTrainer(String username, String password, String searchedUsername) {
+        return trainerService.findByUsername(username, password, searchedUsername);
     }
 
-    public Collection<Trainer> findAllTrainers() {
-        return trainerService.findAll();
+    public Trainer updateTrainer(Trainer trainer) {
+        return trainerService.update(trainer);
     }
 
+    public void changeTrainerPassword(Trainer trainer, String newPassword) {
+        trainerService.changePassword(trainer, newPassword);
+    }
+
+    public void activateOrDeactivateTrainer(Trainer trainer) {
+        trainerService.switchActivate(trainer);
+    }
+
+    // ---- Тренировки (Trainings) ----
     public void createTraining(Training training) {
         trainingService.create(training);
     }
 
-    public Optional<Training> findTrainingByTraineeId(Long traineeId) {
-        return trainingService.findByTraineeId(traineeId);
+    public List<Training> getTrainingsForTrainee(String username, String password, String traineeUsername, Date fromDate, Date toDate, String trainerName, String trainingType) {
+        return trainingService.findTrainingsForTrainee(username, password, traineeUsername, fromDate, toDate, trainerName, trainingType);
     }
 
-    public Collection<Training> findAllTrainings() {
-        return trainingService.findAll();
+    public List<Training> getTrainingsForTrainer(String username, String password, String trainerUsername, Date fromDate, Date toDate, String trainingType) {
+        return trainingService.findTrainingsForTrainer(username, password, trainerUsername, fromDate, toDate, trainingType);
     }
 }

@@ -1,8 +1,12 @@
 package org.epam.util;
 
+import org.epam.model.Trainee;
+import org.epam.model.Trainer;
+import org.epam.model.TrainingType;
 import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
+import java.util.Date;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -33,5 +37,10 @@ public class UserUtil {
     public static boolean passwordFormatValidator(String password)
     {
         return password.length()>=10;
+    }
+    public static Trainee setStandardTrainee(Trainee trainee) {
+        trainee.setAddress("Абая 47");
+        trainee.setDateOfBirth(new Date());
+        return trainee;
     }
 }

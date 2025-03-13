@@ -1,14 +1,12 @@
 package org.epam;
 
-import org.epam.data.Storage;
+import org.epam.config.DataSourceConfig;
+import org.epam.config.HibernateConfig;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class App {
     public static void main(String[] args) {
-        System.out.println("Starting Spring application...");
-        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class)) {
-            Storage dataLoader = context.getBean(Storage.class);
-            System.out.println("DataLoader initialized.");
-        }
+        ApplicationContext context = new AnnotationConfigApplicationContext(DataSourceConfig.class, HibernateConfig.class);
     }
 }

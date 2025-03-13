@@ -35,7 +35,7 @@ CREATE TABLE trainees (
 );
 
 CREATE TABLE trainings (
-                           id BIGSERIAL PRIMARY KEY,
+                           id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
                            training_name VARCHAR(255) NOT NULL,
                            training_type_id BIGINT NOT NULL,
                            trainer_id BIGINT NOT NULL,

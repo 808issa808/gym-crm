@@ -1,16 +1,20 @@
 package org.epam.data;
 
+import jakarta.transaction.Transactional;
 import org.epam.model.Trainer;
 
 import java.util.Optional;
 
 public interface TrainerRepository {
     boolean existsByUsername(String username);
-    Trainer create(Trainer trainer);
+
     Optional<Trainer> findByUsername(String username);
-    Trainer changePassword(String password);
+
+    Trainer create(Trainer trainer);
+
+    Trainer changePassword(Trainer trainer, String password);
+
     Trainer update(Trainer trainer);
-    Trainer switchActivate(Trainer trainer);
 
-
+    void switchActivate(String username);
 }
