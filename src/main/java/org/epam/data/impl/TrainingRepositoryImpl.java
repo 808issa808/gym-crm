@@ -43,9 +43,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     public List<Training> findByTraineeUsername(String username) {
         log.debug("Fetching trainings for trainee '{}'", username);
         String hql = "SELECT tr FROM Training tr WHERE tr.trainee.username = :username";
-        List<Training> trainings = entityManager.createQuery(hql, Training.class)
-                .setParameter("username", username)
-                .getResultList();
+        List<Training> trainings = entityManager.createQuery(hql, Training.class).setParameter("username", username).getResultList();
         log.info("Found {} trainings for trainee '{}'", trainings.size(), username);
         return trainings;
     }
@@ -54,17 +52,14 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     public List<Training> findByTrainerUsername(String username) {
         log.debug("Fetching trainings for trainer '{}'", username);
         String hql = "SELECT tr FROM Training tr WHERE tr.trainer.username = :username";
-        List<Training> trainings = entityManager.createQuery(hql, Training.class)
-                .setParameter("username", username)
-                .getResultList();
+        List<Training> trainings = entityManager.createQuery(hql, Training.class).setParameter("username", username).getResultList();
         log.info("Found {} trainings for trainer '{}'", trainings.size(), username);
         return trainings;
     }
 
     @Override
     public List<Training> findTrainingsForTrainee(String traineeUsername, Date fromDate, Date toDate, String trainerName, String trainingType) {
-        log.debug("Fetching trainings for trainee '{}' with filters: fromDate={}, toDate={}, trainerName='{}', trainingType='{}'",
-                traineeUsername, fromDate, toDate, trainerName, trainingType);
+        log.debug("Fetching trainings for trainee '{}' with filters: fromDate={}, toDate={}, trainerName='{}', trainingType='{}'", traineeUsername, fromDate, toDate, trainerName, trainingType);
 
         TypedQuery<Training> query = entityManager.createQuery(FIND_BY_TRAINEE_CRITERIA, Training.class);
         query.setParameter("traineeUsername", traineeUsername);
@@ -80,8 +75,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
 
     @Override
     public List<Training> findTrainingsForTrainer(String trainerUsername, Date fromDate, Date toDate, String traineeName) {
-        log.debug("Fetching trainings for trainer '{}' with filters: fromDate={}, toDate={}, traineeName='{}'",
-                trainerUsername, fromDate, toDate, traineeName);
+        log.debug("Fetching trainings for trainer '{}' with filters: fromDate={}, toDate={}, traineeName='{}'", trainerUsername, fromDate, toDate, traineeName);
 
         TypedQuery<Training> query = entityManager.createQuery(FIND_BY_TRAINER_CRITERIA, Training.class);
         query.setParameter("trainerUsername", trainerUsername);

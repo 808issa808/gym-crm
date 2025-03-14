@@ -7,21 +7,25 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TraineeRepository {
-    boolean existsByUsername(String username);
+//    boolean existsByUsername(String username);
+
+    int countByUsernamePrefix(String usernamePrefix);
 
     Optional<Trainee> findByUsername(String username);
 
     List<Trainer> getNotMineTrainersByUsername(String username);
 
-    Trainee create(Trainee trainee);
+//    Trainee create(Trainee trainee);
 
-    Trainee update(Trainee trainee);
+//    Trainee update(Trainee trainee);
 
-    Trainee changePassword(Trainee trainee, String password);
+    Trainee save(Trainee trainee);
 
-    Trainee updateTrainersList(Trainee trainee, List<Trainer> updatedTrainers);
+//    Trainee changePassword(Trainee trainee, String password);
 
-    void switchActivate(String username);
+//    Trainee updateTrainersList(Trainee trainee, List<Trainer> updatedTrainers);
 
-    void deleteByUsername(String Username);
+//    void switchActivate(String username);
+
+    void delete(Trainee trainee);
 }
