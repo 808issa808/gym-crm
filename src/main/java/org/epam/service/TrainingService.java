@@ -42,6 +42,6 @@ public class TrainingService {
 
     public List<Training> findTrainingsForTrainer(String username, String password, String trainerUsername, Date fromDate, Date toDate, String traineeName) {
         Authenticator.authenticateUser(username, password, trainerRepository::findByUsername);
-        return trainingRepository.findTrainingsForTrainer(trainerUsername, fromDate, toDate, traineeName);
+        return trainingRepository.findTrainingsForTrainerByCriteria(trainerUsername, fromDate, toDate, traineeName);
     }
 }

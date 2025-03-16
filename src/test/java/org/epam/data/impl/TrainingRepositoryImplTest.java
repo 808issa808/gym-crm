@@ -96,7 +96,7 @@ class TrainingRepositoryImplTest {
         when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
         when(typedQuery.getResultList()).thenReturn(List.of(training));
 
-        List<Training> result = trainingRepository.findTrainingsForTrainer("trainer1", new Date(), new Date(), "John");
+        List<Training> result = trainingRepository.findTrainingsForTrainerByCriteria("trainer1", new Date(), new Date(), "John");
 
         assertEquals(1, result.size());
         verify(entityManager).createQuery(criteriaQuery);

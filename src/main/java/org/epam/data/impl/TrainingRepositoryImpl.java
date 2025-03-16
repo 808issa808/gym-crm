@@ -40,7 +40,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
 
 
     @Override
-    public List<Training> findTrainingsForTrainer(String trainerUsername, Date fromDate, Date toDate, String traineeName) {
+    public List<Training> findTrainingsForTrainerByCriteria(String trainerUsername, Date fromDate, Date toDate, String traineeName) {
         log.debug("Fetching trainings for trainer '{}' with filters: fromDate={}, toDate={}, traineeName='{}'", trainerUsername, fromDate, toDate, traineeName);
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();

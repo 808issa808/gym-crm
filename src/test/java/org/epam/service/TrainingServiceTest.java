@@ -135,12 +135,12 @@ class TrainingServiceTest {
             mockedAuthenticator.when(() -> Authenticator.authenticateUser(username, password, trainerRepository::findByUsername)).thenAnswer(invocation -> null); // Ничего не делать
 
             // Мокаем метод репозитория
-            when(trainingRepository.findTrainingsForTrainer(trainerUsername, fromDate, toDate, traineeName)).thenReturn(expectedTrainings);
+            when(trainingRepository.findTrainingsForTrainerByCriteria(trainerUsername, fromDate, toDate, traineeName)).thenReturn(expectedTrainings);
 
             List<Training> result = trainingService.findTrainingsForTrainer(username, password, trainerUsername, fromDate, toDate, traineeName);
 
             assertEquals(expectedTrainings, result);
-            verify(trainingRepository, times(1)).findTrainingsForTrainer(trainerUsername, fromDate, toDate, traineeName);
+            verify(trainingRepository, times(1)).findTrainingsForTrainerByCriteria(trainerUsername, fromDate, toDate, traineeName);
         }
     }
 
