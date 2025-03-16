@@ -10,7 +10,7 @@ public interface TrainingRepository {
 
     List<Training> findByTrainerUsername(String username);
 
-    List<Training> findTrainingsForTrainee(String traineeUsername, Date fromDate, Date toDate, String trainerName, String trainingType);
+    List<Training> findTrainingsForTraineeByCriteria(String traineeUsername, Date fromDate, Date toDate, String trainerName, String trainingType);
 
     List<Training> findTrainingsForTrainer(String trainerUsername, Date fromDate, Date toDate, String traineeName);
 

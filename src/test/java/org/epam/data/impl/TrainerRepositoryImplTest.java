@@ -1,8 +1,8 @@
 package org.epam.data.impl;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.Query;
 import org.epam.model.Trainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,11 +12,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,9 +28,6 @@ class TrainerRepositoryImplTest {
     @Mock
     private TypedQuery<Trainer> trainerQuery;
 
-    @Mock
-    private Query updateQuery;
-
     @InjectMocks
     private TrainerRepositoryImpl trainerRepository;
 
@@ -42,40 +36,26 @@ class TrainerRepositoryImplTest {
     @BeforeEach
     void setUp() {
         trainer = new Trainer();
+        trainer.setId(1L);
         trainer.setUsername("testTrainer");
-        trainer.setPassword("password");
-        trainer.setActive(true);
-
-        lenient().when(entityManager.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
-        lenient().when(entityManager.createQuery(anyString(), eq(Trainer.class))).thenReturn(trainerQuery);
-        lenient().when(entityManager.createQuery(anyString())).thenReturn(updateQuery);
-    }
-
-
-    @Test
-    void testExistsByUsername_TrainerExists() {
-        when(countQuery.setParameter("username", "testTrainer")).thenReturn(countQuery);
-        when(countQuery.getSingleResult()).thenReturn(1L);
-
-        boolean exists = trainerRepository.existsByUsername("testTrainer");
-
-        assertTrue(exists);
     }
 
     @Test
-    void testExistsByUsername_TrainerNotExists() {
-        when(countQuery.setParameter("username", "testTrainer")).thenReturn(countQuery);
-        when(countQuery.getSingleResult()).thenReturn(0L);
+    void countByUsernamePrefix_ShouldReturnCorrectCount() {
+        when(entityManager.createQuery(anyString(), eq(Long.class))).thenReturn(countQuery);
+        when(countQuery.setParameter(anyString(), anyString())).thenReturn(countQuery);
+        when(countQuery.getSingleResult()).thenReturn(3L);
 
-        boolean exists = trainerRepository.existsByUsername("testTrainer");
+        int count = trainerRepository.countByUsernamePrefix("test");
 
-        assertFalse(exists);
+        assertEquals(3, count);
     }
 
     @Test
-    void testFindByUsername_TrainerExists() {
-        when(trainerQuery.setParameter("username", "testTrainer")).thenReturn(trainerQuery);
-        when(trainerQuery.getResultStream()).thenReturn(Stream.of(trainer));
+    void findByUsername_ShouldReturnTrainer_WhenTrainerExists() {
+        when(entityManager.createQuery(anyString(), eq(Trainer.class))).thenReturn(trainerQuery);
+        when(trainerQuery.setParameter(anyString(), any())).thenReturn(trainerQuery);
+        when(trainerQuery.getSingleResult()).thenReturn(trainer);
 
         Optional<Trainer> result = trainerRepository.findByUsername("testTrainer");
 
@@ -84,67 +64,34 @@ class TrainerRepositoryImplTest {
     }
 
     @Test
-    void testFindByUsername_TrainerNotExists() {
-        when(trainerQuery.setParameter("username", "testTrainer")).thenReturn(trainerQuery);
-        when(trainerQuery.getResultStream()).thenReturn(Stream.empty());
+    void findByUsername_ShouldReturnEmpty_WhenTrainerDoesNotExist() {
+        when(entityManager.createQuery(anyString(), eq(Trainer.class))).thenReturn(trainerQuery);
+        when(trainerQuery.setParameter(anyString(), any())).thenReturn(trainerQuery);
+        when(trainerQuery.getSingleResult()).thenThrow(new NoResultException());
 
-        Optional<Trainer> result = trainerRepository.findByUsername("testTrainer");
+        Optional<Trainer> result = trainerRepository.findByUsername("unknownTrainer");
 
         assertFalse(result.isPresent());
     }
 
     @Test
-    void testCreateTrainer() {
-        doNothing().when(entityManager).persist(any(Trainer.class));
+    void save_ShouldPersistNewTrainer_WhenIdIsNull() {
+        trainer.setId(null);
+        doNothing().when(entityManager).persist(trainer);
 
-        Trainer createdTrainer = trainerRepository.create(trainer);
+        Trainer result = trainerRepository.save(trainer);
 
-        assertNotNull(createdTrainer);
-        assertEquals("testTrainer", createdTrainer.getUsername());
+        assertNull(result.getId());
         verify(entityManager, times(1)).persist(trainer);
     }
 
     @Test
-    void testChangePassword() {
-        when(entityManager.merge(any(Trainer.class))).thenReturn(trainer);
+    void save_ShouldMergeExistingTrainer_WhenIdIsNotNull() {
+        doReturn(trainer).when(entityManager).merge(trainer);
 
-        Trainer updatedTrainer = trainerRepository.changePassword(trainer, "newPassword");
+        Trainer result = trainerRepository.save(trainer);
 
-        assertNotNull(updatedTrainer);
-        assertEquals("newPassword", updatedTrainer.getPassword());
+        assertEquals(trainer.getId(), result.getId());
         verify(entityManager, times(1)).merge(trainer);
-    }
-
-    @Test
-    void testUpdateTrainer() {
-        when(entityManager.merge(any(Trainer.class))).thenReturn(trainer);
-
-        Trainer updatedTrainer = trainerRepository.update(trainer);
-
-        assertNotNull(updatedTrainer);
-        assertEquals("testTrainer", updatedTrainer.getUsername());
-        verify(entityManager, times(1)).merge(trainer);
-    }
-
-    @Test
-    void testSwitchActivate_TrainerExists() {
-        when(updateQuery.setParameter("username", "testTrainer")).thenReturn(updateQuery);
-        when(updateQuery.executeUpdate()).thenReturn(1);
-
-        trainerRepository.switchActivate("testTrainer");
-
-        verify(entityManager, times(1)).createQuery(anyString());
-        verify(updateQuery, times(1)).executeUpdate();
-    }
-
-    @Test
-    void testSwitchActivate_TrainerNotExists() {
-        when(updateQuery.setParameter("username", "testTrainer")).thenReturn(updateQuery);
-        when(updateQuery.executeUpdate()).thenReturn(0);
-
-        trainerRepository.switchActivate("testTrainer");
-
-        verify(entityManager, times(1)).createQuery(anyString());
-        verify(updateQuery, times(1)).executeUpdate();
     }
 }

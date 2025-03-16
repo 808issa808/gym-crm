@@ -2,6 +2,7 @@ package org.epam.data.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.*;
 import org.epam.model.Training;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,11 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,101 +26,113 @@ class TrainingRepositoryImplTest {
     @Mock
     private TypedQuery<Training> typedQuery;
 
+    @Mock
+    private CriteriaBuilder criteriaBuilder;
+
+    @Mock
+    private CriteriaQuery<Training> criteriaQuery;
+
+    @Mock
+    private Root<Training> root;
+
+    @Mock
+    private Join<Object, Object> traineeJoin;
+
+    @Mock
+    private Join<Object, Object> trainerJoin;
+
+    @Mock
+    private Join<Object, Object> trainingTypeJoin;
+
     @InjectMocks
     private TrainingRepositoryImpl trainingRepository;
 
-    private Training training1;
-    private Training training2;
+    private Training training;
 
     @BeforeEach
     void setUp() {
-        training1 = new Training();
-        training1.setId(1L);
-
-        training2 = new Training();
-        training2.setId(2L);
+        training = new Training();
+        training.setId(1L);
     }
 
     @Test
-    void testFindByTraineeUsername() {
-        String username = "trainee1";
-        List<Training> expectedTrainings = Arrays.asList(training1, training2);
-
+    void findByTraineeUsername_ShouldReturnTrainings() {
         when(entityManager.createQuery(anyString(), eq(Training.class))).thenReturn(typedQuery);
-        when(typedQuery.setParameter("username", username)).thenReturn(typedQuery);
-        when(typedQuery.getResultList()).thenReturn(expectedTrainings);
+        when(typedQuery.setParameter(anyString(), anyString())).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(training));
 
-        List<Training> result = trainingRepository.findByTraineeUsername(username);
-
-        assertEquals(2, result.size());
-        verify(entityManager).createQuery(anyString(), eq(Training.class));
-        verify(typedQuery).setParameter("username", username);
-        verify(typedQuery).getResultList();
-    }
-
-    @Test
-    void testFindByTrainerUsername() {
-        String username = "trainer1";
-        List<Training> expectedTrainings = Arrays.asList(training1);
-
-        when(entityManager.createQuery(anyString(), eq(Training.class))).thenReturn(typedQuery);
-        when(typedQuery.setParameter("username", username)).thenReturn(typedQuery);
-        when(typedQuery.getResultList()).thenReturn(expectedTrainings);
-
-        List<Training> result = trainingRepository.findByTrainerUsername(username);
+        List<Training> result = trainingRepository.findByTraineeUsername("testUser");
 
         assertEquals(1, result.size());
         verify(entityManager).createQuery(anyString(), eq(Training.class));
-        verify(typedQuery).setParameter("username", username);
-        verify(typedQuery).getResultList();
     }
 
     @Test
-    void testFindTrainingsForTrainee() {
-        String traineeUsername = "trainee1";
-        Date fromDate = new Date();
-        Date toDate = new Date();
-        String trainerName = "John";
-        String trainingType = "Cardio";
-
+    void findByTrainerUsername_ShouldReturnTrainings() {
         when(entityManager.createQuery(anyString(), eq(Training.class))).thenReturn(typedQuery);
-        when(typedQuery.setParameter(anyString(), any())).thenReturn(typedQuery);
-        when(typedQuery.getResultList()).thenReturn(Arrays.asList(training1, training2));
+        when(typedQuery.setParameter(anyString(), anyString())).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(training));
 
-        List<Training> result = trainingRepository.findTrainingsForTrainee(traineeUsername, fromDate, toDate, trainerName, trainingType);
-
-        assertEquals(2, result.size());
-        verify(entityManager).createQuery(anyString(), eq(Training.class));
-        verify(typedQuery, atLeastOnce()).setParameter(anyString(), any());
-        verify(typedQuery).getResultList();
-    }
-
-    @Test
-    void testFindTrainingsForTrainer() {
-        String trainerUsername = "trainer1";
-        Date fromDate = new Date();
-        Date toDate = new Date();
-        String traineeName = "Alice";
-
-        when(entityManager.createQuery(anyString(), eq(Training.class))).thenReturn(typedQuery);
-        when(typedQuery.setParameter(anyString(), any())).thenReturn(typedQuery);
-        when(typedQuery.getResultList()).thenReturn(Arrays.asList(training1));
-
-        List<Training> result = trainingRepository.findTrainingsForTrainer(trainerUsername, fromDate, toDate, traineeName);
+        List<Training> result = trainingRepository.findByTrainerUsername("testTrainer");
 
         assertEquals(1, result.size());
         verify(entityManager).createQuery(anyString(), eq(Training.class));
-        verify(typedQuery, atLeastOnce()).setParameter(anyString(), any());
-        verify(typedQuery).getResultList();
     }
 
     @Test
-    void testCreate() {
-        doNothing().when(entityManager).persist(training1);
+    void findTrainingsForTrainer_ShouldReturnTrainings() {
+        when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        when(criteriaBuilder.createQuery(Training.class)).thenReturn(criteriaQuery);
+        when(criteriaQuery.from(Training.class)).thenReturn(root);
 
-        Training result = trainingRepository.create(training1);
+        // Мокируем присоединения
+        when(root.join("trainer")).thenReturn(trainerJoin);
+        when(root.join("trainee", JoinType.LEFT)).thenReturn(traineeJoin);
 
-        assertEquals(training1, result);
-        verify(entityManager).persist(training1);
+        // Мокируем select и where, чтобы избежать NPE
+        when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
+        when(criteriaQuery.where(any(Predicate[].class))).thenReturn(criteriaQuery);
+
+        when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(training));
+
+        List<Training> result = trainingRepository.findTrainingsForTrainer("trainer1", new Date(), new Date(), "John");
+
+        assertEquals(1, result.size());
+        verify(entityManager).createQuery(criteriaQuery);
+    }
+
+    @Test
+    void findTrainingsForTraineeByCriteria_ShouldReturnTrainings() {
+        when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        when(criteriaBuilder.createQuery(Training.class)).thenReturn(criteriaQuery);
+        when(criteriaQuery.from(Training.class)).thenReturn(root);
+
+        // Мокируем присоединения
+        when(root.join("trainee")).thenReturn(traineeJoin);
+        when(root.join("trainer", JoinType.LEFT)).thenReturn(trainerJoin);
+        when(root.join("type", JoinType.LEFT)).thenReturn(trainingTypeJoin);
+
+        // Мокируем select и where, чтобы избежать NPE
+        when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
+        when(criteriaQuery.where(any(Predicate[].class))).thenReturn(criteriaQuery);
+
+        when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(training));
+
+        List<Training> result = trainingRepository.findTrainingsForTraineeByCriteria("trainee1", new Date(), new Date(), "Doe", "Yoga");
+
+        assertEquals(1, result.size());
+        verify(entityManager).createQuery(criteriaQuery);
+    }
+
+    @Test
+    void create_ShouldPersistTraining() {
+        doNothing().when(entityManager).persist(training);
+
+        Training result = trainingRepository.create(training);
+
+        assertEquals(training, result);
+        verify(entityManager).persist(training);
     }
 }

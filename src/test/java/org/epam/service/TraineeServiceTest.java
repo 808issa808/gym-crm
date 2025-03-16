@@ -3,19 +3,18 @@ package org.epam.service;
 import org.epam.data.impl.TraineeRepositoryImpl;
 import org.epam.model.Trainee;
 import org.epam.model.Trainer;
-import org.epam.util.UserUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,127 +27,113 @@ class TraineeServiceTest {
     private TraineeService traineeService;
 
     private Trainee trainee;
-    private Trainer trainer;
 
     @BeforeEach
     void setUp() {
         trainee = new Trainee();
-        trainee.setUsername("trainee1");
-        trainee.setPassword("securePass");
-
-        trainer = new Trainer();
-        trainer.setUsername("trainer1");
+        trainee.setUsername("john.doe");
+        trainee.setPassword("password123");
+        trainee.setFirstName("John");
+        trainee.setLastName("Doe");
     }
 
     @Test
-    void testCreate() {
-        when(traineeRepository.existsByUsername(anyString())).thenReturn(false);
-        when(traineeRepository.create(any(Trainee.class))).thenReturn(trainee);
+    void create_ShouldGenerateUsernameAndSaveTrainee() {
+        when(traineeRepository.countByUsernamePrefix(any())).thenReturn(0);
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
 
         traineeService.create(trainee);
 
         assertNotNull(trainee.getUsername());
         assertNotNull(trainee.getPassword());
-        verify(traineeRepository).create(trainee);
+        verify(traineeRepository).save(trainee);
     }
 
     @Test
-    void testUpdate() {
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
-        when(traineeRepository.update(trainee)).thenReturn(trainee);
+    void update_ShouldAuthenticateAndUpdateTrainee() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
 
         Trainee updatedTrainee = traineeService.update(trainee);
 
         assertEquals(trainee, updatedTrainee);
-        verify(traineeRepository).update(trainee);
+        verify(traineeRepository).save(trainee);
     }
 
     @Test
-    void testFindByUsername() {
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+    void findByUsername_ShouldReturnTrainee_WhenExists() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
 
-        Trainee found = traineeService.findByUsername("trainee1", "securePass", "trainee1");
+        Trainee foundTrainee = traineeService.findByUsername("john.doe", "password123", "john.doe");
 
-        assertEquals(trainee, found);
-        verify(traineeRepository, times(2)).findByUsername("trainee1");
+        assertEquals(trainee, foundTrainee);
     }
 
     @Test
-    void testGetNotMineTrainersByUsername() {
-        List<Trainer> trainers = List.of(trainer);
+    void findByUsername_ShouldThrowException_WhenTraineeNotFound() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.empty());
 
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
-        when(traineeRepository.getNotMineTrainersByUsername("trainee1")).thenReturn(trainers);
-
-        List<Trainer> result = traineeService.getNotMineTrainersByUsername("trainee1", "securePass");
-
-        assertEquals(1, result.size());
-        assertEquals(trainer, result.get(0));
-        verify(traineeRepository, times(1)).findByUsername("trainee1");
-        verify(traineeRepository).getNotMineTrainersByUsername("trainee1");
+        assertThrows(IllegalArgumentException.class, () -> traineeService.findByUsername("john.doe", "password123", "john.doe"));
     }
 
     @Test
-    void testUpdateTrainersList() {
-        List<Trainer> trainers = List.of(trainer);
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
-        when(traineeRepository.updateTrainersList(trainee, trainers)).thenReturn(trainee);
+    void getNotMineTrainersByUsername_ShouldReturnTrainerList() {
+        List<Trainer> trainers = List.of(new Trainer());
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.getNotMineTrainersByUsername("john.doe")).thenReturn(trainers);
 
-        Trainee updatedTrainee = traineeService.updateTrainersList("trainee1", "securePass", trainers);
+        List<Trainer> result = traineeService.getNotMineTrainersByUsername("john.doe", "password123");
 
-        assertEquals(trainee, updatedTrainee);
-        verify(traineeRepository).updateTrainersList(trainee, trainers);
+        assertEquals(trainers, result);
     }
 
     @Test
-    void testChangePassword() {
-        String newPassword = "newSecurePass";
+    void updateTrainersList_ShouldUpdateTrainers() {
+        List<Trainer> trainers = List.of(new Trainer());
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
 
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
-        when(traineeRepository.changePassword(trainee, newPassword)).thenReturn(trainee);
+        Trainee updatedTrainee = traineeService.updateTrainersList("john.doe", "password123", trainers);
 
-        try (MockedStatic<UserUtil> mockedUserUtil = mockStatic(UserUtil.class)) {
-            mockedUserUtil.when(() -> UserUtil.passwordFormatValidator(newPassword)).thenReturn(true);
-
-            Trainee updatedTrainee = traineeService.changePassword(trainee, newPassword);
-
-            assertEquals(trainee, updatedTrainee);
-            verify(traineeRepository).changePassword(trainee, newPassword);
-        }
+        assertEquals(trainers, updatedTrainee.getTrainers());
     }
 
     @Test
-    void testChangePassword_InvalidFormat() {
-        String invalidPassword = "short";
+    void changePassword_ShouldUpdatePassword_WhenValid() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
 
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+        Trainee updatedTrainee = traineeService.changePassword(trainee, "newSecurePassword");
 
-        try (MockedStatic<UserUtil> mockedUserUtil = mockStatic(UserUtil.class)) {
-            mockedUserUtil.when(() -> UserUtil.passwordFormatValidator(invalidPassword)).thenReturn(false);
-
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                    traineeService.changePassword(trainee, invalidPassword));
-
-            assertEquals("New Password should be at least 10 chars long", exception.getMessage());
-            verify(traineeRepository, never()).changePassword(any(), any());
-        }
+        assertEquals("newSecurePassword", updatedTrainee.getPassword());
     }
 
     @Test
-    void testSwitchActivate() {
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+    void changePassword_ShouldThrowException_WhenPasswordTooShort() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        assertThrows(IllegalArgumentException.class, () -> traineeService.changePassword(trainee, "short"));
+    }
+
+    @Test
+    void switchActivate_ShouldToggleActiveState() {
+        trainee.setActive(true);
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
 
         traineeService.switchActivate(trainee);
 
-        verify(traineeRepository).switchActivate("trainee1");
+        assertFalse(trainee.isActive());
+        verify(traineeRepository).save(trainee);
     }
 
     @Test
-    void testDeleteTraineeByUsername() {
-        when(traineeRepository.findByUsername("trainee1")).thenReturn(Optional.of(trainee));
+    void deleteTraineeByUsername_ShouldDeleteTrainee() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        doNothing().when(traineeRepository).delete(any(Trainee.class));
 
-        traineeService.deleteTraineeByUsername("trainee1", "securePass");
+        traineeService.deleteTraineeByUsername("john.doe", "password123");
 
-        verify(traineeRepository).deleteByUsername("trainee1");
+        verify(traineeRepository).delete(trainee);
     }
 }

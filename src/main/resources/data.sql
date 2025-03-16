@@ -1,9 +1,10 @@
 -- Добавляем пользователей
-INSERT INTO users (firstname, lastname, username, password, isActive) VALUES
-                                                                             ('Иван', 'Иванов', 'ivanov', 'password1', true),
+INSERT INTO users (firstname, lastname, username, password, is_active) VALUES
+                                                                             ('Ivan', 'Иванов', 'ivanov', 'password1', true),
                                                                              ('Петр', 'Петров', 'petrov', 'password2', true),
                                                                              ('Мария', 'Сидорова', 'sidorova', 'password3', true),
-                                                                             ('Анна', 'Козлова', 'kozlova', 'password4', true);
+                                                                             ('Анна', 'Козлова', 'kozlova', 'password4', true),
+                                                                             ('Удаляемый', 'Иванов', 'deleting', 'password1', true);
 
 -- Добавляем типы тренировок
 INSERT INTO training_types (training_type_name) VALUES
@@ -19,7 +20,8 @@ INSERT INTO trainers (id, training_type_id) VALUES
 -- Добавляем учеников (ссылаются на users)
 INSERT INTO trainees (id, date_of_birth, address) VALUES
                                                       (3, '1995-06-15', 'ул. Ленина, 10'),
-                                                      (4, '1998-09-23', 'пр-т Победы, 25');
+                                                      (4, '1998-09-23', 'пр-т Победы, 25'),
+                                                      (5, '1998-09-23', 'пр-т удаления, 204');
 
 -- Добавляем тренировки
 INSERT INTO trainings (training_name, training_type_id, trainer_id, trainee_id, training_date, training_duration) VALUES
