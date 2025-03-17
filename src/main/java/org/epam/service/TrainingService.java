@@ -37,11 +37,11 @@ public class TrainingService {
 
     public List<Training> findTrainingsForTrainee(String username, String password, String traineeUsername, Date fromDate, Date toDate, String trainerName, String trainingType) {
         Authenticator.authenticateUser(username, password, traineeRepository::findByUsername);
-        return trainingRepository.findTrainingsForTraineeByCriteria(traineeUsername, fromDate, toDate, trainerName, trainingType);
+        return trainingRepository.findTrainingsByCriteria(traineeUsername, fromDate, toDate, trainerName,"trainee", trainingType);
     }
 
     public List<Training> findTrainingsForTrainer(String username, String password, String trainerUsername, Date fromDate, Date toDate, String traineeName) {
         Authenticator.authenticateUser(username, password, trainerRepository::findByUsername);
-        return trainingRepository.findTrainingsForTrainerByCriteria(trainerUsername, fromDate, toDate, traineeName);
+        return trainingRepository.findTrainingsByCriteria(trainerUsername, fromDate, toDate, traineeName,"trainer",null);
     }
 }

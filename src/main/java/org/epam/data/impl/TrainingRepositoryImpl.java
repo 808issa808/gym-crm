@@ -39,59 +39,29 @@ public class TrainingRepositoryImpl implements TrainingRepository {
     }
 
 
-    @Override
-    public List<Training> findTrainingsForTrainerByCriteria(String trainerUsername, Date fromDate, Date toDate, String traineeName) {
-        log.debug("Fetching trainings for trainer '{}' with filters: fromDate={}, toDate={}, traineeName='{}'", trainerUsername, fromDate, toDate, traineeName);
+    public List<Training> findTrainingsByCriteria(String username, Date fromDate, Date toDate, String nameFilter, String userType, String trainingType) {
+        log.debug("Fetching trainings for {} '{}' with filters: fromDate={}, toDate={}, nameFilter='{}', trainingType='{}'", userType, username, fromDate, toDate, nameFilter, trainingType);
 
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Training> cq = cb.createQuery(Training.class);
         Root<Training> trainingRoot = cq.from(Training.class);
 
-        // Присоединяем нужные сущности
-        Join<?, ?> trainerJoin = trainingRoot.join("trainer");
-        Join<?, ?> traineeJoin = trainingRoot.join("trainee", JoinType.LEFT);
-
-        // Список условий
-        List<Predicate> predicates = new ArrayList<>();
-        predicates.add(cb.equal(trainerJoin.get("username"), trainerUsername));
-
-        if (fromDate != null) {
-            predicates.add(cb.greaterThanOrEqualTo(trainingRoot.get("date"), fromDate));
-        }
-        if (toDate != null) {
-            predicates.add(cb.lessThanOrEqualTo(trainingRoot.get("date"), toDate));
-        }
-        if (traineeName != null && !traineeName.isBlank()) {
-            Predicate trainerLastNameLike = cb.like(cb.lower(traineeJoin.get("lastName")), "%" + traineeName + "%");
-            Predicate trainerFirstNameLike = cb.like(cb.lower(traineeJoin.get("firstName")), "%" + traineeName + "%");
-            predicates.add(cb.or(trainerLastNameLike, trainerFirstNameLike));
+        // Присоединяем нужные сущности в зависимости от userType
+        Join<?, ?> userJoin = null;
+        if ("trainer".equals(userType)) {
+            userJoin = trainingRoot.join("trainer");
+        } else if ("trainee".equals(userType)) {
+            userJoin = trainingRoot.join("trainee");
         }
 
-        // Собираем запрос
-        cq.select(trainingRoot).where(predicates.toArray(new Predicate[0]));
-        TypedQuery<Training> query = entityManager.createQuery(cq);
-
-        List<Training> trainings = query.getResultList();
-        log.info("Found {} trainings for trainer '{}'", trainings.size(), trainerUsername);
-        return trainings;
-    }
-
-    @Override
-    public List<Training> findTrainingsForTraineeByCriteria(String traineeUsername, Date fromDate, Date toDate, String trainerName, String trainingType) {
-        log.debug("Fetching trainings for trainee '{}' with filters: fromDate={}, toDate={}, trainerName='{}', trainingType='{}'", traineeUsername, fromDate, toDate, trainerName, trainingType);
-
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Training> cq = cb.createQuery(Training.class);
-        Root<Training> trainingRoot = cq.from(Training.class);
-
-        // Присоединяем нужные сущности
-        Join<?, ?> traineeJoin = trainingRoot.join("trainee");
-        Join<?, ?> trainerJoin = trainingRoot.join("trainer", JoinType.LEFT);
         Join<?, ?> trainingTypeJoin = trainingRoot.join("type", JoinType.LEFT);
 
         // Список условий
         List<Predicate> predicates = new ArrayList<>();
-        predicates.add(cb.equal(traineeJoin.get("username"), traineeUsername));
+
+        if (userJoin != null) {
+            predicates.add(cb.equal(userJoin.get("username"), username));
+        }
 
         if (fromDate != null) {
             predicates.add(cb.greaterThanOrEqualTo(trainingRoot.get("date"), fromDate));
@@ -99,11 +69,13 @@ public class TrainingRepositoryImpl implements TrainingRepository {
         if (toDate != null) {
             predicates.add(cb.lessThanOrEqualTo(trainingRoot.get("date"), toDate));
         }
-        if (trainerName != null && !trainerName.isBlank()) {
-            Predicate trainerLastNameLike = cb.like(cb.lower(trainerJoin.get("lastName")), "%" + trainerName + "%");
-            Predicate trainerFirstNameLike = cb.like(cb.lower(trainerJoin.get("firstName")), "%" + trainerName + "%");
-            predicates.add(cb.or(trainerLastNameLike, trainerFirstNameLike));
+
+        if (nameFilter != null && !nameFilter.isBlank()) {
+            Predicate lastNameLike = cb.like(cb.lower(userJoin.get("lastName")), "%" + nameFilter + "%");
+            Predicate firstNameLike = cb.like(cb.lower(userJoin.get("firstName")), "%" + nameFilter + "%");
+            predicates.add(cb.or(lastNameLike, firstNameLike));
         }
+
         if (trainingType != null && !trainingType.isBlank()) {
             predicates.add(cb.equal(trainingTypeJoin.get("trainingTypeName"), trainingType));
         }
@@ -113,7 +85,7 @@ public class TrainingRepositoryImpl implements TrainingRepository {
         TypedQuery<Training> query = entityManager.createQuery(cq);
 
         List<Training> trainings = query.getResultList();
-        log.info("Found {} trainings for trainee '{}'", trainings.size(), traineeUsername);
+        log.info("Found {} trainings for {} '{}'", trainings.size(), userType, username);
         return trainings;
     }
 

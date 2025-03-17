@@ -14,23 +14,10 @@ import java.util.Optional;
 
 @Slf4j
 @Repository
-public class TraineeRepositoryImpl implements TraineeRepository {
+public class TraineeRepositoryImpl extends UserRepositoryImpl implements TraineeRepository {
 
     @PersistenceContext
     private EntityManager entityManager;
-
-    @Override
-    public int countByUsernamePrefix(String usernamePrefix) {
-        log.debug("Counting trainees with username starting with '{}'", usernamePrefix);
-
-        String hql = "SELECT COUNT(u) FROM User u WHERE u.username LIKE :usernamePrefix";
-        Long count = entityManager.createQuery(hql, Long.class).setParameter("usernamePrefix", usernamePrefix + "%").getSingleResult();
-
-        int result = count != null ? count.intValue() : 0;
-        log.info("Number of trainees with username starting with '{}': {}", usernamePrefix, result);
-
-        return result;
-    }
 
 
     @Override
