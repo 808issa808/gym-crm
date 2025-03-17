@@ -46,7 +46,6 @@ public class TrainingRepositoryImpl implements TrainingRepository {
         CriteriaQuery<Training> cq = cb.createQuery(Training.class);
         Root<Training> trainingRoot = cq.from(Training.class);
 
-        // Присоединяем нужные сущности в зависимости от userType
         Join<?, ?> userJoin = null;
         if ("trainer".equals(userType)) {
             userJoin = trainingRoot.join("trainer");
@@ -56,7 +55,6 @@ public class TrainingRepositoryImpl implements TrainingRepository {
 
         Join<?, ?> trainingTypeJoin = trainingRoot.join("type", JoinType.LEFT);
 
-        // Список условий
         List<Predicate> predicates = new ArrayList<>();
 
         if (userJoin != null) {
@@ -80,7 +78,6 @@ public class TrainingRepositoryImpl implements TrainingRepository {
             predicates.add(cb.equal(trainingTypeJoin.get("trainingTypeName"), trainingType));
         }
 
-        // Собираем запрос
         cq.select(trainingRoot).where(predicates.toArray(new Predicate[0]));
         TypedQuery<Training> query = entityManager.createQuery(cq);
 

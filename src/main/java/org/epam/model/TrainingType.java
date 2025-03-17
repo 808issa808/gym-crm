@@ -8,7 +8,7 @@ import org.hibernate.annotations.Immutable;
 @Getter
 @Setter
 @Immutable
-@NoArgsConstructor()
+@NoArgsConstructor
 @AllArgsConstructor
 @Entity
 @Table(name = "training_types")
