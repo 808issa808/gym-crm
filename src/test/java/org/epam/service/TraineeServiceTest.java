@@ -1,7 +1,8 @@
 package org.epam.service;
 
-import org.epam.data.TraineeDao;
+import org.epam.data.impl.TraineeRepositoryImpl;
 import org.epam.model.Trainee;
+import org.epam.model.Trainer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,16 +10,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.*;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class TraineeServiceTest {
 
     @Mock
-    private TraineeDao traineeDao;
+    private TraineeRepositoryImpl traineeRepository;
 
     @InjectMocks
     private TraineeService traineeService;
@@ -27,83 +30,110 @@ class TraineeServiceTest {
 
     @BeforeEach
     void setUp() {
-        trainee = new Trainee(1L, "John", "Doe", null, null, true, new Date(), "123 Street");
+        trainee = new Trainee();
+        trainee.setUsername("john.doe");
+        trainee.setPassword("password123");
+        trainee.setFirstName("John");
+        trainee.setLastName("Doe");
     }
 
     @Test
-    void save_ShouldGenerateUsernameAndPassword_AndCallDaoSave() {
-        Set<String> existingUsernames = new HashSet<>();
-
-        when(traineeDao.existsByUsername(anyString()))
-                .thenAnswer(invocation -> existingUsernames.contains(invocation.getArgument(0)));
-
-        doAnswer(invocation -> {
-            Trainee t = invocation.getArgument(0);
-            existingUsernames.add(t.getUsername());
-            return null;
-        }).when(traineeDao).save(any(Trainee.class));
-
+    void create_ShouldGenerateUsernameAndSaveTrainee() {
+        when(traineeRepository.countByUsernamePrefix(any())).thenReturn(0);
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
 
         traineeService.create(trainee);
-        assertEquals("John.Doe", trainee.getUsername());
+
+        assertNotNull(trainee.getUsername());
         assertNotNull(trainee.getPassword());
-        assertEquals(10, trainee.getPassword().length());
-        assertFalse(trainee.getPassword().isEmpty());
-
-        traineeService.create(trainee);
-        assertEquals("John.Doe1", trainee.getUsername());
-
-        traineeService.create(trainee);
-        assertEquals("John.Doe2", trainee.getUsername());
-
-        verify(traineeDao, times(3)).save(trainee);
-    }
-
-
-    @Test
-    void findById_ShouldReturnTrainee_WhenExists() {
-        when(traineeDao.findById(1L)).thenReturn(Optional.of(trainee));
-
-        Optional<Trainee> found = traineeService.findById(1L);
-
-        assertTrue(found.isPresent());
-        assertEquals(trainee, found.get());
+        verify(traineeRepository).save(trainee);
     }
 
     @Test
-    void findById_ShouldReturnEmpty_WhenNotExists() {
-        when(traineeDao.findById(999L)).thenReturn(Optional.empty());
+    void update_ShouldAuthenticateAndUpdateTrainee() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
 
-        Optional<Trainee> found = traineeService.findById(999L);
+        Trainee updatedTrainee = traineeService.update(trainee);
 
-        assertTrue(found.isEmpty());
+        assertEquals(trainee, updatedTrainee);
+        verify(traineeRepository).save(trainee);
     }
 
     @Test
-    void findAll_ShouldReturnAllTrainees() {
-        List<Trainee> trainees = Arrays.asList(trainee, new Trainee(2L, "Jane", "Doe", "janedoe", "password", true, new Date(), "456 Avenue"));
+    void findByUsername_ShouldReturnTrainee_WhenExists() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
 
-        when(traineeDao.findAll()).thenReturn(trainees);
+        Trainee foundTrainee = traineeService.findByUsername("john.doe", "password123", "john.doe");
 
-        Collection<Trainee> result = traineeService.findAll();
-
-        assertEquals(2, result.size());
-        assertTrue(result.containsAll(trainees));
+        assertEquals(trainee, foundTrainee);
     }
 
     @Test
-    void deleteById_ShouldCallDaoDeleteById() {
-        traineeService.deleteById(1L);
-        verify(traineeDao, times(1)).deleteById(1L);
+    void findByUsername_ShouldThrowException_WhenTraineeNotFound() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> traineeService.findByUsername("john.doe", "password123", "john.doe"));
     }
 
     @Test
-    void update_ShouldCallDaoUpdate() {
-        when(traineeDao.update(trainee)).thenReturn(trainee);
+    void getNotMineTrainersByUsername_ShouldReturnTrainerList() {
+        List<Trainer> trainers = List.of(new Trainer());
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.getNotMineTrainersByUsername("john.doe")).thenReturn(trainers);
 
-        Trainee updated = traineeService.update(trainee);
+        List<Trainer> result = traineeService.getNotMineTrainersByUsername("john.doe", "password123");
 
-        assertEquals(trainee, updated);
-        verify(traineeDao, times(1)).update(trainee);
+        assertEquals(trainers, result);
+    }
+
+    @Test
+    void updateTrainersList_ShouldUpdateTrainers() {
+        List<Trainer> trainers = List.of(new Trainer());
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
+
+        Trainee updatedTrainee = traineeService.updateTrainersList("john.doe", "password123", trainers);
+
+        assertEquals(trainers, updatedTrainee.getTrainers());
+    }
+
+    @Test
+    void changePassword_ShouldUpdatePassword_WhenValid() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
+
+        Trainee updatedTrainee = traineeService.changePassword(trainee, "newSecurePassword");
+
+        assertEquals("newSecurePassword", updatedTrainee.getPassword());
+    }
+
+    @Test
+    void changePassword_ShouldThrowException_WhenPasswordTooShort() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+
+        assertThrows(IllegalArgumentException.class, () -> traineeService.changePassword(trainee, "short"));
+    }
+
+    @Test
+    void switchActivate_ShouldToggleActiveState() {
+        trainee.setActive(true);
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        when(traineeRepository.save(any(Trainee.class))).thenReturn(trainee);
+
+        traineeService.switchActivate(trainee);
+
+        assertFalse(trainee.isActive());
+        verify(traineeRepository).save(trainee);
+    }
+
+    @Test
+    void deleteTraineeByUsername_ShouldDeleteTrainee() {
+        when(traineeRepository.findByUsername("john.doe")).thenReturn(Optional.of(trainee));
+        doNothing().when(traineeRepository).delete(any(Trainee.class));
+
+        traineeService.deleteTraineeByUsername("john.doe", "password123");
+
+        verify(traineeRepository).delete(trainee);
     }
 }

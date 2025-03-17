@@ -1,25 +1,31 @@
 package org.epam.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import lombok.*;
 
 import java.util.Date;
+import java.util.List;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
+@Setter
 @NoArgsConstructor
-@Component
+@AllArgsConstructor
+@Entity
+@Table(name = "trainees")
+@PrimaryKeyJoinColumn(name = "id")
 public class Trainee extends User {
-    private Date dateOfBirth;
-    private String address;
-    private Long userId;
 
-    public Trainee(Long userId, String firstName, String lastName, String username, String password, boolean active, Date dateOfBirth, String address) {
-        super(firstName, lastName, username, password, active);
-        this.userId = userId;
-        this.dateOfBirth = dateOfBirth;
-        this.address = address;
-    }
+    @Column(name = "date_of_birth")
+    private Date dateOfBirth;
+
+    @Column(name = "address")
+    private String address;
+
+    @Valid
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(name = "trainer_trainee",
+            joinColumns = @JoinColumn(name = "trainee_id"),
+            inverseJoinColumns = @JoinColumn(name = "trainer_id"))
+    private List<Trainer> trainers;
 }

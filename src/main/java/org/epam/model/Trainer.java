@@ -1,21 +1,27 @@
 package org.epam.model;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
+import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+import java.util.List;
+
+@Getter
+@Setter
 @NoArgsConstructor
-@Component
+@AllArgsConstructor
+@Entity
+@Table(name = "trainers")
+@PrimaryKeyJoinColumn(name = "id")
 public class Trainer extends User {
-    private TrainingType specialization;
-    private Long userId;
 
-    public Trainer(Long userId, String firstName, String lastName, String username, String password, boolean active, TrainingType specialization) {
-        super(firstName, lastName, username, password, active);
-        this.userId = userId;
-        this.specialization = specialization;
-    }
+    @NotNull(message = "Специализация обязательна")
+    @ManyToOne
+    @JoinColumn(name = "training_type_id", referencedColumnName = "id", nullable = false)
+    private TrainingType specialization;
+
+    @Valid
+    @ManyToMany(mappedBy = "trainers", cascade = CascadeType.ALL)
+    private List<Trainee> trainees;
 }

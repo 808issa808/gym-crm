@@ -4,23 +4,18 @@ import org.springframework.stereotype.Component;
 
 import java.security.SecureRandom;
 import java.util.Random;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 @Component
 public class UserUtil {
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final Random RANDOM = new SecureRandom();
 
-    public static String generateUsername(String firstName, String lastName, Predicate<String> usernameExists) {
+    public static String generateUsername(String firstName, String lastName, Function<String, Integer> getSimilarCount) {
         String baseUsername = firstName + "." + lastName;
-        String username = baseUsername;
-        int counter = 1;
+        int similarCount = getSimilarCount.apply(baseUsername);
 
-        while (usernameExists.test(username)) {
-            username = baseUsername + counter;
-            counter++;
-        }
-        return username;
+        return similarCount == 0 ? baseUsername : baseUsername + similarCount;
     }
 
     public static String generatePassword() {

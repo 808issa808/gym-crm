@@ -1,37 +1,59 @@
 package org.epam.service;
 
-import org.epam.data.TrainerDao;
+import lombok.RequiredArgsConstructor;
+import org.epam.data.impl.TrainerRepositoryImpl;
 import org.epam.model.Trainer;
+import org.epam.util.Authenticator;
 import org.epam.util.UserUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class TrainerService {
-    private TrainerDao trainerDao;
 
-    public void create(Trainer trainer) {
+    private final TrainerRepositoryImpl trainerRepository;
 
-        String username = UserUtil.generateUsername(trainer.getFirstName(), trainer.getLastName(), trainerDao::existsByUsername);
+    @Transactional
+    public Trainer create(Trainer trainer) {
+
+        String username = UserUtil.generateUsername(trainer.getFirstName(), trainer.getLastName(), trainerRepository::countByUsernamePrefix);
         String password = UserUtil.generatePassword();
         trainer.setUsername(username);
         trainer.setPassword(password);
-        trainerDao.save(trainer);
+        trainer.setActive(true);
+        return trainerRepository.save(trainer);
     }
 
-    public Optional<Trainer> findById(Long id) {
-        return trainerDao.findById(id);
+    public Trainer findByUsername(String username, String password, String searchedUsername) {
+        Authenticator.authenticateUser(username, password, trainerRepository::findByUsername);
+        return trainerRepository.findByUsername(searchedUsername)
+                .orElseThrow(() -> new IllegalArgumentException("There is no trainer with username: " + searchedUsername));
     }
 
-    public Collection<Trainer> findAll() {
-        return trainerDao.findAll();
+
+    @Transactional
+    public Trainer changePassword(Trainer trainer, String password) {
+        Authenticator.authenticateUser(trainer.getUsername(), trainer.getPassword(), trainerRepository::findByUsername);
+        if (password.trim().length()>=10) {
+            trainer.setPassword(password);
+            return trainerRepository.save(trainer);
+        } else {
+            throw new IllegalArgumentException("New Password should be at least 10 chars long");
+        }
     }
 
-    @Autowired
-    public void setTrainerDao(TrainerDao trainerDao) {
-        this.trainerDao = trainerDao;
+    @Transactional
+    public Trainer update(Trainer trainer) {
+        Authenticator.authenticateUser(trainer.getUsername(), trainer.getPassword(), trainerRepository::findByUsername);
+        return trainerRepository.save(trainer);
+    }
+
+    @Transactional
+    public void switchActivate(Trainer trainer) {
+        Authenticator.authenticateUser(trainer.getUsername(), trainer.getPassword(), trainerRepository::findByUsername);
+        trainer.setActive(!trainer.isActive());
+        trainerRepository.save(trainer);
     }
 }
