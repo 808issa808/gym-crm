@@ -3,23 +3,27 @@ package org.epam.service;
 import org.epam.data.impl.TraineeRepositoryImpl;
 import org.epam.data.impl.TrainerRepositoryImpl;
 import org.epam.data.impl.TrainingRepositoryImpl;
+import org.epam.model.Trainee;
 import org.epam.model.Trainer;
 import org.epam.model.Training;
-import org.epam.util.Authenticator;
+import org.epam.model.TrainingType;
+import org.epam.web.dto.training.GetTraineeTrainingsResponse;
+import org.epam.web.dto.training.GetTrainerTrainingsResponse;
+import org.epam.web.dto.training.TrainingCreateDto;
+import org.epam.web.dto.users.UserCredentialsDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.modelmapper.ModelMapper;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,114 +38,176 @@ class TrainingServiceTest {
     @Mock
     private TrainerRepositoryImpl trainerRepository;
 
+    @Mock
+    private ModelMapper modelMapper;
+
     @InjectMocks
     private TrainingService trainingService;
 
     private Training training;
+    private Trainee trainee;
+    private Trainer trainer;
+    private UserCredentialsDto credentials;
 
     @BeforeEach
     void setUp() {
+        TrainingType trainingType = new TrainingType();
+        trainingType.setId(1L);
+        trainingType.setTrainingTypeName("Yoga");
+
+        trainee = new Trainee();
+        trainee.setUsername("trainee.user");
+        trainee.setPassword("traineePass");
+
+        trainer = new Trainer();
+        trainer.setUsername("trainer.user");
+        trainer.setPassword("trainerPass");
+        trainer.setSpecialization(trainingType);
+
         training = new Training();
         training.setId(1L);
+        training.setName("Morning Yoga");
+        training.setDate(new Date());
+        training.setDuration(60);
+        training.setTrainee(trainee);
+        training.setTrainer(trainer);
+        training.setType(trainingType);
+
+        credentials = new UserCredentialsDto("trainee.user", "traineePass");
     }
 
     @Test
-    void shouldCreateTraining() {
-        trainingService.create(training);
-        verify(trainingRepository, times(1)).create(training);
+    void create_ShouldSaveTraining_WhenValidData() {
+        // Arrange
+        TrainingCreateDto createDto = new TrainingCreateDto();
+        createDto.setAuth(credentials);
+        createDto.setTrainee("trainee.user");
+        createDto.setTrainer("trainer.user");
+        createDto.setName("Morning Yoga");
+        createDto.setDate(new Date());
+        createDto.setDuration(60);
+
+        when(traineeRepository.findByUsername("trainee.user")).thenReturn(Optional.of(trainee));
+        when(trainerRepository.findByUsername("trainer.user")).thenReturn(Optional.of(trainer));
+        when(modelMapper.map(createDto, Training.class)).thenReturn(training);
+        when(trainingRepository.create(training)).thenReturn(training);
+
+        // Act
+        trainingService.create(createDto);
+
+        // Assert
+        verify(trainingRepository).create(training);
+        assertEquals(trainer.getSpecialization(), training.getType());
     }
 
     @Test
-    void shouldFindByTraineeUsername() {
-        String username = "trainee1";
-        String password = "password";
-        List<Training> expectedTrainings = Collections.singletonList(training);
+    void create_ShouldThrowException_WhenTraineeNotFound() {
+        // Arrange
+        TrainingCreateDto createDto = new TrainingCreateDto();
+        createDto.setAuth(credentials);
+        createDto.setTrainee("unknown.trainee");
+        createDto.setTrainer("trainer.user");
 
-        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class)) {
-            // Правильный способ замока void-метода
-            mockedAuthenticator.when(() -> Authenticator.authenticateUser(username, password, traineeRepository::findByUsername)).thenAnswer(invocation -> null); // Просто ничего не делать
+        // Stub the authentication call
+        when(traineeRepository.findByUsername("trainee.user")).thenReturn(Optional.of(trainee));
+        // Stub the actual test case call
+        when(traineeRepository.findByUsername("unknown.trainee")).thenReturn(Optional.empty());
 
-            // Замокали `findByTraineeUsername`
-            when(trainingRepository.findByTraineeUsername(username)).thenReturn(expectedTrainings);
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> trainingService.create(createDto));
+        assertEquals("No trainee with given username : unknown.trainee exists.", exception.getMessage());
 
-            List<Training> result = trainingService.findByTraineeUsername(username, password);
-
-            assertEquals(expectedTrainings, result);
-            verify(trainingRepository, times(1)).findByTraineeUsername(username);
-        }
-    }
-
-
-    @Test
-    void shouldFindByTrainerUsername() {
-        String username = "trainer1";
-        String password = "password";
-        Trainer trainer = new Trainer();
-        trainer.setUsername(username);
-        trainer.setPassword(password);
-        List<Training> expectedTrainings = Collections.singletonList(training);
-
-        // Замокайте правильный ответ для findByUsername
-        when(trainerRepository.findByUsername(username)).thenReturn(Optional.of(trainer));
-
-        // Замокайте ответ для findByTrainerUsername
-        when(trainingRepository.findByTrainerUsername(username)).thenReturn(expectedTrainings);
-
-        List<Training> result = trainingService.findByTrainerUsername(username, password);
-
-        assertEquals(expectedTrainings, result);
-        verify(trainingRepository, times(1)).findByTrainerUsername(username);
+        // Verify no interactions with trainer repository
+        verifyNoInteractions(trainerRepository);
     }
 
     @Test
-    void shouldFindTrainingsForTrainee() {
-        String username = "trainee1";
-        String password = "password";
-        String traineeUsername = "trainee1";
-        Date fromDate = new Date();
+    void create_ShouldThrowException_WhenTrainerNotFound() {
+        // Arrange
+        TrainingCreateDto createDto = new TrainingCreateDto();
+        createDto.setAuth(credentials);
+        createDto.setTrainee("trainee.user");
+        createDto.setTrainer("unknown.trainer");
+
+        when(traineeRepository.findByUsername("trainee.user")).thenReturn(Optional.of(trainee));
+        when(trainerRepository.findByUsername("unknown.trainer")).thenReturn(Optional.empty());
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> trainingService.create(createDto));
+        assertEquals("There is no trainer with username: unknown.trainer", exception.getMessage());
+    }
+
+    @Test
+    void findByTraineeUsername_ShouldReturnTrainingsList() {
+        // Arrange
+        when(traineeRepository.findByUsername("trainee.user")).thenReturn(Optional.of(trainee));
+        when(trainingRepository.findByTraineeUsername("trainee.user")).thenReturn(List.of(training));
+
+        // Act
+        List<Training> result = trainingService.findByTraineeUsername("trainee.user", "traineePass");
+
+        // Assert
+        assertFalse(result.isEmpty());
+        assertEquals(training, result.get(0));
+    }
+
+    @Test
+    void findByTrainerUsername_ShouldReturnTrainingsList() {
+        // Arrange
+        when(trainerRepository.findByUsername("trainer.user")).thenReturn(Optional.of(trainer));
+        when(trainingRepository.findByTrainerUsername("trainer.user")).thenReturn(List.of(training));
+
+        // Act
+        List<Training> result = trainingService.findByTrainerUsername("trainer.user", "trainerPass");
+
+        // Assert
+        assertFalse(result.isEmpty());
+        assertEquals(training, result.get(0));
+    }
+
+    @Test
+    void findTrainingsForTrainee_ShouldReturnFilteredTrainings() {
+        // Arrange
+        GetTraineeTrainingsResponse response = new GetTraineeTrainingsResponse();
+        Date fromDate = new Date(System.currentTimeMillis() - 100000);
         Date toDate = new Date();
-        String trainerName = "trainer1";
-        String trainingType = "yoga";
 
-        List<Training> expectedTrainings = Collections.singletonList(training);
+        when(traineeRepository.findByUsername("trainee.user")).thenReturn(Optional.of(trainee));
+        when(trainingRepository.findTrainingsByCriteria(
+                "trainee.user", fromDate, toDate, "trainer.user", "trainee", "Yoga"))
+                .thenReturn(List.of(training));
+        when(modelMapper.map(training, GetTraineeTrainingsResponse.class)).thenReturn(response);
 
-        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class)) {
-            // Мокаем вызов аутентификации (void-метод)
-            mockedAuthenticator.when(() -> Authenticator.authenticateUser(username, password, traineeRepository::findByUsername)).thenAnswer(invocation -> null); // Просто ничего не делать
+        // Act
+        List<GetTraineeTrainingsResponse> result = trainingService.findTrainingsForTrainee(
+                "trainee.user", "traineePass", "trainee.user", fromDate, toDate, "trainer.user", "Yoga");
 
-            // Мокаем вызов репозитория
-            when(trainingRepository.findTrainingsForTraineeByCriteria(traineeUsername, fromDate, toDate, trainerName, trainingType)).thenReturn(expectedTrainings);
-
-            List<Training> result = trainingService.findTrainingsForTrainee(username, password, traineeUsername, fromDate, toDate, trainerName, trainingType);
-
-            assertEquals(expectedTrainings, result);
-            verify(trainingRepository, times(1)).findTrainingsForTraineeByCriteria(traineeUsername, fromDate, toDate, trainerName, trainingType);
-        }
+        // Assert
+        assertFalse(result.isEmpty());
+        assertEquals(response, result.get(0));
     }
 
     @Test
-    void shouldFindTrainingsForTrainer() {
-        String username = "trainer1";
-        String password = "password";
-        String trainerUsername = "trainer1";
-        Date fromDate = new Date();
+    void findTrainingsForTrainer_ShouldReturnFilteredTrainings() {
+        // Arrange
+        GetTrainerTrainingsResponse response = new GetTrainerTrainingsResponse();
+        Date fromDate = new Date(System.currentTimeMillis() - 100000);
         Date toDate = new Date();
-        String traineeName = "trainee1";
 
-        List<Training> expectedTrainings = Collections.singletonList(training);
+        when(trainerRepository.findByUsername("trainer.user")).thenReturn(Optional.of(trainer));
+        when(trainingRepository.findTrainingsByCriteria(
+                "trainer.user", fromDate, toDate, "trainee.user", "trainer", null))
+                .thenReturn(List.of(training));
+        when(modelMapper.map(training, GetTrainerTrainingsResponse.class)).thenReturn(response);
 
-        try (MockedStatic<Authenticator> mockedAuthenticator = mockStatic(Authenticator.class)) {
-            // Мокаем статический метод аутентификации
-            mockedAuthenticator.when(() -> Authenticator.authenticateUser(username, password, trainerRepository::findByUsername)).thenAnswer(invocation -> null); // Ничего не делать
+        // Act
+        List<GetTrainerTrainingsResponse> result = trainingService.findTrainingsForTrainer(
+                "trainer.user", "trainerPass", "trainer.user", fromDate, toDate, "trainee.user");
 
-            // Мокаем метод репозитория
-            when(trainingRepository.findTrainingsForTrainerByCriteria(trainerUsername, fromDate, toDate, traineeName)).thenReturn(expectedTrainings);
-
-            List<Training> result = trainingService.findTrainingsForTrainer(username, password, trainerUsername, fromDate, toDate, traineeName);
-
-            assertEquals(expectedTrainings, result);
-            verify(trainingRepository, times(1)).findTrainingsForTrainerByCriteria(trainerUsername, fromDate, toDate, traineeName);
-        }
+        // Assert
+        assertFalse(result.isEmpty());
+        assertEquals(response, result.get(0));
     }
-
 }
