@@ -1,12 +1,18 @@
 package org.epam.data.impl;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.epam.data.UserRepository;
+import org.epam.model.User;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
+@Primary
 @Slf4j
 public class UserRepositoryImpl implements UserRepository {
     @PersistenceContext
@@ -23,5 +29,20 @@ public class UserRepositoryImpl implements UserRepository {
         log.info("Number of users with username starting with '{}': {}", usernamePrefix, result);
 
         return result;
+    }
+    @Override
+    public Optional<User> findByUsernameUser(String username) {
+        log.debug("Fetching trainee by username '{}'", username);
+
+        try {
+            User user = entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                    .setParameter("username", username).getSingleResult();
+
+            log.info("Trainee with username '{}' found", username);
+            return Optional.of(user);
+        } catch (NoResultException e) {
+            log.warn("No trainee found with username '{}'", username);
+            return Optional.empty();
+        }
     }
 }

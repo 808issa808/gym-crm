@@ -12,7 +12,7 @@ import org.hibernate.annotations.ColumnDefault;
 @Entity
 @Table(name = "users")
 @Inheritance(strategy = InheritanceType.JOINED)
-public abstract class User {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,6 +37,10 @@ public abstract class User {
     @ColumnDefault("true")
     private boolean isActive;
 
+    public User(String username, String password) {
+        this.username=username;
+        this.password=password;
+    }
     @PrePersist
     protected void prePersist() {
         isActive = true;

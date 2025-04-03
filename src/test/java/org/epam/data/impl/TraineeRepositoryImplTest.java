@@ -25,9 +25,6 @@ class TraineeRepositoryImplTest {
     private EntityManager entityManager;
 
     @Mock
-    private TypedQuery<Long> longQuery;
-
-    @Mock
     private TypedQuery<Trainee> traineeQuery;
 
     @Mock
@@ -46,89 +43,100 @@ class TraineeRepositoryImplTest {
     }
 
     @Test
-    void countByUsernamePrefix_ShouldReturnCorrectCount() {
-        when(entityManager.createQuery(anyString(), eq(Long.class))).thenReturn(longQuery);
-        when(longQuery.setParameter(anyString(), anyString())).thenReturn(longQuery);
-        when(longQuery.getSingleResult()).thenReturn(5L);
-
-        int count = traineeRepository.countByUsernamePrefix("test");
-
-        assertEquals(5, count);
-    }
-
-    @Test
     void findByUsername_ShouldReturnTrainee_WhenTraineeExists() {
+        // Arrange
         when(entityManager.createQuery(anyString(), eq(Trainee.class))).thenReturn(traineeQuery);
-        when(traineeQuery.setParameter(anyString(), any())).thenReturn(traineeQuery);
+        when(traineeQuery.setParameter("username", "testUser")).thenReturn(traineeQuery);
         when(traineeQuery.getSingleResult()).thenReturn(trainee);
 
+        // Act
         Optional<Trainee> result = traineeRepository.findByUsername("testUser");
 
+        // Assert
         assertTrue(result.isPresent());
         assertEquals("testUser", result.get().getUsername());
     }
 
     @Test
     void findByUsername_ShouldReturnEmpty_WhenTraineeDoesNotExist() {
+        // Arrange
         when(entityManager.createQuery(anyString(), eq(Trainee.class))).thenReturn(traineeQuery);
-        when(traineeQuery.setParameter(anyString(), any())).thenReturn(traineeQuery);
+        when(traineeQuery.setParameter("username", "unknownUser")).thenReturn(traineeQuery);
         when(traineeQuery.getSingleResult()).thenThrow(new NoResultException());
 
+        // Act
         Optional<Trainee> result = traineeRepository.findByUsername("unknownUser");
 
+        // Assert
         assertFalse(result.isPresent());
     }
 
     @Test
     void getNotMineTrainersByUsername_ShouldReturnTrainers() {
+        // Arrange
         List<Trainer> mockTrainers = List.of(new Trainer(), new Trainer());
-
         when(entityManager.createQuery(anyString(), eq(Trainer.class))).thenReturn(trainerQuery);
-        when(trainerQuery.setParameter(anyString(), any())).thenReturn(trainerQuery);
+        when(trainerQuery.setParameter("username", "testUser")).thenReturn(trainerQuery);
         when(trainerQuery.getResultList()).thenReturn(mockTrainers);
 
-        List<Trainer> trainers = traineeRepository.getNotMineTrainersByUsername("testUser");
+        // Act
+        List<Trainer> result = traineeRepository.getNotMineTrainersByUsername("testUser");
 
-        assertEquals(2, trainers.size());
+        // Assert
+        assertEquals(2, result.size());
     }
 
     @Test
     void save_ShouldPersistNewTrainee_WhenIdIsNull() {
+        // Arrange
         trainee.setId(null);
         doNothing().when(entityManager).persist(trainee);
 
+        // Act
         Trainee result = traineeRepository.save(trainee);
 
+        // Assert
         assertNull(result.getId());
-        verify(entityManager, times(1)).persist(trainee);
+        verify(entityManager).persist(trainee);
+        verify(entityManager, never()).merge(any());
     }
 
     @Test
     void save_ShouldMergeExistingTrainee_WhenIdIsNotNull() {
-        doReturn(trainee).when(entityManager).merge(trainee);
+        // Arrange
+        when(entityManager.merge(trainee)).thenReturn(trainee);
 
+        // Act
         Trainee result = traineeRepository.save(trainee);
 
+        // Assert
         assertEquals(trainee.getId(), result.getId());
-        verify(entityManager, times(1)).merge(trainee);
+        verify(entityManager).merge(trainee);
+        verify(entityManager, never()).persist(any());
     }
 
     @Test
     void delete_ShouldRemoveTrainee_WhenExists() {
-        when(entityManager.find(Trainee.class, trainee.getId())).thenReturn(trainee);
+        // Arrange
+        when(entityManager.find(Trainee.class, 1L)).thenReturn(trainee);
         doNothing().when(entityManager).remove(trainee);
 
+        // Act
         traineeRepository.delete(trainee);
 
-        verify(entityManager, times(1)).remove(trainee);
+        // Assert
+        verify(entityManager).remove(trainee);
     }
 
     @Test
     void delete_ShouldDoNothing_WhenTraineeDoesNotExist() {
-        when(entityManager.find(Trainee.class, trainee.getId())).thenReturn(null);
+        // Arrange
+        when(entityManager.find(Trainee.class, 1L)).thenReturn(null);
 
+        // Act
         traineeRepository.delete(trainee);
 
+        // Assert
         verify(entityManager, never()).remove(any());
     }
 }

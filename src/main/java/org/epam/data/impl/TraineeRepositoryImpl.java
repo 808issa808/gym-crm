@@ -40,11 +40,12 @@ public class TraineeRepositoryImpl extends UserRepositoryImpl implements Trainee
         log.debug("Fetching trainers not assigned to trainee with username '{}'", username);
         String hql = """
                 SELECT tr FROM Trainer tr
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM Trainee tn
-                    JOIN tn.trainers t
-                    WHERE t = tr AND tn.username = :username
-                )
+                           WHERE tr.isActive = true
+                           AND NOT EXISTS (
+                               SELECT 1 FROM Trainee tn
+                               JOIN tn.trainers t
+                               WHERE t = tr AND tn.username = :username
+                           )
                 """;
         List<Trainer> trainers = entityManager.createQuery(hql, Trainer.class).setParameter("username", username).getResultList();
         log.info("Found {} trainers not assigned to trainee '{}'", trainers.size(), username);

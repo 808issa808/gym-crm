@@ -36,10 +36,7 @@ class TrainingRepositoryImplTest {
     private Root<Training> root;
 
     @Mock
-    private Join<Object, Object> traineeJoin;
-
-    @Mock
-    private Join<Object, Object> trainerJoin;
+    private Join<Object, Object> userJoin;
 
     @Mock
     private Join<Object, Object> trainingTypeJoin;
@@ -57,81 +54,123 @@ class TrainingRepositoryImplTest {
 
     @Test
     void findByTraineeUsername_ShouldReturnTrainings() {
+        // Arrange
         when(entityManager.createQuery(anyString(), eq(Training.class))).thenReturn(typedQuery);
-        when(typedQuery.setParameter(anyString(), anyString())).thenReturn(typedQuery);
+        when(typedQuery.setParameter("username", "testUser")).thenReturn(typedQuery);
         when(typedQuery.getResultList()).thenReturn(List.of(training));
 
+        // Act
         List<Training> result = trainingRepository.findByTraineeUsername("testUser");
 
+        // Assert
         assertEquals(1, result.size());
         verify(entityManager).createQuery(anyString(), eq(Training.class));
     }
 
     @Test
     void findByTrainerUsername_ShouldReturnTrainings() {
+        // Arrange
         when(entityManager.createQuery(anyString(), eq(Training.class))).thenReturn(typedQuery);
-        when(typedQuery.setParameter(anyString(), anyString())).thenReturn(typedQuery);
+        when(typedQuery.setParameter("username", "testTrainer")).thenReturn(typedQuery);
         when(typedQuery.getResultList()).thenReturn(List.of(training));
 
+        // Act
         List<Training> result = trainingRepository.findByTrainerUsername("testTrainer");
 
+        // Assert
         assertEquals(1, result.size());
         verify(entityManager).createQuery(anyString(), eq(Training.class));
     }
 
     @Test
-    void findTrainingsForTrainer_ShouldReturnTrainings() {
+    void findTrainingsByCriteria_ShouldReturnTrainingsForTrainer() {
+        // Arrange
         when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
         when(criteriaBuilder.createQuery(Training.class)).thenReturn(criteriaQuery);
         when(criteriaQuery.from(Training.class)).thenReturn(root);
+        when(root.join("trainer")).thenReturn(userJoin);
+        when(root.join("type", JoinType.LEFT)).thenReturn(trainingTypeJoin);
 
-        // Мокируем присоединения
-        when(root.join("trainer")).thenReturn(trainerJoin);
-        when(root.join("trainee", JoinType.LEFT)).thenReturn(traineeJoin);
-
-        // Мокируем select и where, чтобы избежать NPE
+        // Mock criteria query building
         when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
         when(criteriaQuery.where(any(Predicate[].class))).thenReturn(criteriaQuery);
-
         when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
         when(typedQuery.getResultList()).thenReturn(List.of(training));
 
-        List<Training> result = trainingRepository.findTrainingsForTrainerByCriteria("trainer1", new Date(), new Date(), "John");
+        Date fromDate = new Date();
+        Date toDate = new Date();
 
+        // Act
+        List<Training> result = trainingRepository.findTrainingsByCriteria(
+                "trainer1", fromDate, toDate, "John", "trainer", "Yoga");
+
+        // Assert
         assertEquals(1, result.size());
-        verify(entityManager).createQuery(criteriaQuery);
+        verify(root).join("trainer");
+        verify(root).join("type", JoinType.LEFT);
     }
 
     @Test
-    void findTrainingsForTraineeByCriteria_ShouldReturnTrainings() {
+    void findTrainingsByCriteria_ShouldReturnTrainingsForTrainee() {
+        // Arrange
         when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
         when(criteriaBuilder.createQuery(Training.class)).thenReturn(criteriaQuery);
         when(criteriaQuery.from(Training.class)).thenReturn(root);
-
-        // Мокируем присоединения
-        when(root.join("trainee")).thenReturn(traineeJoin);
-        when(root.join("trainer", JoinType.LEFT)).thenReturn(trainerJoin);
+        when(root.join("trainee")).thenReturn(userJoin);
         when(root.join("type", JoinType.LEFT)).thenReturn(trainingTypeJoin);
 
-        // Мокируем select и where, чтобы избежать NPE
+        // Mock criteria query building
         when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
         when(criteriaQuery.where(any(Predicate[].class))).thenReturn(criteriaQuery);
-
         when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
         when(typedQuery.getResultList()).thenReturn(List.of(training));
 
-        List<Training> result = trainingRepository.findTrainingsForTraineeByCriteria("trainee1", new Date(), new Date(), "Doe", "Yoga");
+        Date fromDate = new Date();
+        Date toDate = new Date();
 
+        // Act
+        List<Training> result = trainingRepository.findTrainingsByCriteria(
+                "trainee1", fromDate, toDate, "Doe", "trainee", "Yoga");
+
+        // Assert
         assertEquals(1, result.size());
-        verify(entityManager).createQuery(criteriaQuery);
+        verify(root).join("trainee");
+        verify(root).join("type", JoinType.LEFT);
+    }
+
+    @Test
+    void findTrainingsByCriteria_ShouldHandleNullFilters() {
+        // Arrange
+        when(entityManager.getCriteriaBuilder()).thenReturn(criteriaBuilder);
+        when(criteriaBuilder.createQuery(Training.class)).thenReturn(criteriaQuery);
+        when(criteriaQuery.from(Training.class)).thenReturn(root);
+        when(root.join("trainee")).thenReturn(userJoin);
+        when(root.join("type", JoinType.LEFT)).thenReturn(trainingTypeJoin);
+
+        // Mock criteria query building
+        when(criteriaQuery.select(root)).thenReturn(criteriaQuery);
+        when(criteriaQuery.where(any(Predicate[].class))).thenReturn(criteriaQuery);
+        when(entityManager.createQuery(criteriaQuery)).thenReturn(typedQuery);
+        when(typedQuery.getResultList()).thenReturn(List.of(training));
+
+        // Act
+        List<Training> result = trainingRepository.findTrainingsByCriteria(
+                "trainee1", null, null, null, "trainee", null);
+
+        // Assert
+        assertEquals(1, result.size());
+        verify(criteriaQuery).where(any(Predicate[].class));
     }
 
     @Test
     void create_ShouldPersistTraining() {
+        // Arrange
         doNothing().when(entityManager).persist(training);
 
+        // Act
         Training result = trainingRepository.create(training);
 
+        // Assert
         assertEquals(training, result);
         verify(entityManager).persist(training);
     }
