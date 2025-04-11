@@ -1,6 +1,9 @@
 package org.epam.web.controller;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.micrometer.core.instrument.Counter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.epam.service.TraineeService;
@@ -17,19 +20,35 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 @RequestMapping("/trainees")
 public class TraineeController implements TraineeApi {
     private final TraineeService traineeService;
     private final TrainingService trainingService;
+    private final Counter counter;
+    private final Timer timer;
+
+
+    public TraineeController(TraineeService traineeService, TrainingService trainingService, MeterRegistry registry) {
+        this.traineeService = traineeService;
+        this.trainingService = trainingService;
+        this.counter = Counter
+                .builder("trainees_created_total")
+                .description("Number of trainees created")
+                .register(registry);
+        this.timer= Timer.builder("trainee_registration_time")
+                .register(registry);
+    }
 
 
     @Override
     @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public UserCredentialsDto register(@Valid @RequestBody TraineeRegistrationRequest registrationDto) {
-        return traineeService.create(registrationDto);
+        counter.increment();
+        return timer.record(() -> traineeService.create(registrationDto));
     }
 
     @Override
