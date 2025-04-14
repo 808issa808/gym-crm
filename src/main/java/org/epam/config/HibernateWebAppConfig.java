@@ -1,8 +1,8 @@
 package org.epam.config;
 
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ValidatorFactory;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.epam.model.Trainee;
 import org.epam.model.Trainer;
 import org.epam.model.Training;
@@ -15,32 +15,15 @@ import org.epam.web.dto.users.trainer.TrainerWithListDto;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 @Configuration
-@ComponentScan("org.epam")
 public class HibernateWebAppConfig {
-
-    @Bean
-    public PlatformTransactionManager transactionManager() {
-        return new JpaTransactionManager();
-    }
-
-    @Bean
-    public Validator validator() {
-        return Validation.buildDefaultValidatorFactory().getValidator();
-    }
-
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper modelMapper = new ModelMapper();
         modelMapper.getConfiguration().setSkipNullEnabled(true);
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-
 
 
         modelMapper.typeMap(Trainee.class, TraineeWithListDto.class).addMappings(mapper ->
@@ -75,5 +58,19 @@ public class HibernateWebAppConfig {
         });
 
         return modelMapper;
+    }
+
+    @Bean
+    public Counter getCounter(MeterRegistry registry) {
+        return Counter
+                .builder("trainees_created_total")
+                .description("Number of trainees created")
+                .register(registry);
+    }
+
+    @Bean
+    public Timer getTimer(MeterRegistry registry) {
+        return Timer.builder("trainee_registration_time")
+                .register(registry);
     }
 }
