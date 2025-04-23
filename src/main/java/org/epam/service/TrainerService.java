@@ -5,7 +5,7 @@ import org.epam.data.impl.TrainerRepositoryImpl;
 import org.epam.data.impl.TrainingTypeRepository;
 import org.epam.model.Trainer;
 import org.epam.model.TrainingType;
-import org.epam.util.Authenticator;
+import org.epam.security.jwt.JwtService;
 import org.epam.util.UserUtil;
 import org.epam.web.dto.users.UserCredentialsDto;
 import org.epam.web.dto.users.ChangeLoginRequest;
@@ -15,6 +15,11 @@ import org.epam.web.dto.users.trainer.TrainerWithListDto;
 import org.epam.web.exp.ForbiddenException;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -29,9 +34,12 @@ public class TrainerService {
     private final TrainerRepositoryImpl trainerRepository;
     private final TrainingTypeRepository trainingTypeRepository;
     private final ModelMapper modelMapper;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final PasswordEncoder encoder;
 
     @Transactional
-    public UserCredentialsDto create(TrainerRegistrationRequest registrationDto) {
+    public String create(TrainerRegistrationRequest registrationDto) {
         TrainingType specialization = trainingTypeRepository.findById(registrationDto.getSpecialization())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specialization not found"));
 
@@ -40,40 +48,49 @@ public class TrainerService {
         String username = UserUtil.generateUsername(trainer.getFirstName(), trainer.getLastName(), trainerRepository::countByUsernamePrefix);
         String password = UserUtil.generatePassword();
         trainer.setUsername(username);
-        trainer.setPassword(password);
+        trainer.setPassword(encoder.encode(password));
         trainer.setSpecialization(specialization);
 
-        Trainer saved = trainerRepository.save(trainer);
-        return modelMapper.map(saved, UserCredentialsDto.class);
+        trainerRepository.save(trainer);
+
+        UserDetails authed = (UserDetails) authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password)).getPrincipal();
+
+        return jwtService.generateToken(authed);
     }
 
     public TrainerWithListDto findByUsername(UserCredentialsDto auth, String searchedUsername) {
-        Authenticator.authenticateUser(auth.getUsername(), auth.getPassword(), trainerRepository::findByUsername);
         var trainer = trainerRepository.findByUsername(searchedUsername)
                 .orElseThrow(() -> new NoSuchElementException("There is no trainer with username: " + searchedUsername));
 
         return modelMapper.map(trainer, TrainerWithListDto.class);
     }
 
-
     @Transactional
     public Trainer changePassword(ChangeLoginRequest changeDto) {
-        Trainer trainer = Authenticator.authenticateUser(changeDto.getUsername(), changeDto.getPassword(), trainerRepository::findByUsername);
-        trainer.setPassword(changeDto.getNewPassword());
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Trainer trainer = trainerRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new NoSuchElementException("Trainer with username: " + currentUsername + " not found"));
+        trainer.setPassword(encoder.encode(changeDto.getNewPassword()));
 
         return trainerRepository.save(trainer);
     }
 
     @Transactional
     public TrainerWithListDto update(UserCredentialsDto auth, TrainerDto trainerDto) {
-        if (!auth.getUsername().equals(trainerDto.getUsername())) {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!currentUsername.equals(trainerDto.getUsername())) {
             throw new ForbiddenException("Нельзя изменить данные другого пользователя");
         }
 
         TrainingType specialization = trainingTypeRepository.findById(trainerDto.getSpecialization())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Specialization not found"));
 
-        var trainer = Authenticator.authenticateUser(auth.getUsername(), auth.getPassword(), trainerRepository::findByUsername);
+        Trainer trainer = trainerRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new NoSuchElementException("There is no trainer with username: " + currentUsername));
+
         modelMapper.map(trainerDto, trainer);
         trainer.setSpecialization(specialization);
         trainerRepository.save(trainer);
@@ -83,12 +100,18 @@ public class TrainerService {
 
     @Transactional
     public void switchActivate(UserCredentialsDto auth) {
-        var trainer = Authenticator.authenticateUser(auth.getUsername(), auth.getPassword(), trainerRepository::findByUsername);
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        Trainer trainer = trainerRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new NoSuchElementException("There is no trainer with username: " + currentUsername));
+
         trainer.setActive(!trainer.isActive());
         trainerRepository.save(trainer);
     }
 
-    public void login(UserCredentialsDto loginDto) {
-        Authenticator.authenticateUser(loginDto.getUsername(), loginDto.getPassword(), trainerRepository::findByUsername);
+    public String login(UserCredentialsDto loginDto) {
+        UserDetails authed = (UserDetails) authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDto.getUsername(), loginDto.getPassword())).getPrincipal();
+        return jwtService.generateToken(authed);
     }
 }

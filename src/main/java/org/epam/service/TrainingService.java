@@ -5,11 +5,11 @@ import org.epam.data.impl.TraineeRepositoryImpl;
 import org.epam.data.impl.TrainerRepositoryImpl;
 import org.epam.data.impl.TrainingRepositoryImpl;
 import org.epam.model.Training;
-import org.epam.util.Authenticator;
 import org.epam.web.dto.training.GetTraineeTrainingsResponse;
 import org.epam.web.dto.training.GetTrainerTrainingsResponse;
 import org.epam.web.dto.training.TrainingCreateDto;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,12 +28,12 @@ public class TrainingService {
 
     @Transactional
     public void create(TrainingCreateDto trainingCreateDto) {
-        Authenticator.authenticateUser(trainingCreateDto.getAuth().getUsername(), trainingCreateDto.getAuth().getPassword(), traineeRepository::findByUsername);
+        var myName= SecurityContextHolder.getContext().getAuthentication().getName();
 
         var trainee = traineeRepository.findByUsername(trainingCreateDto.getTrainee())
                 .orElseThrow(() -> new IllegalArgumentException("No trainee with given username : " + trainingCreateDto.getTrainee() + " exists."));
-        var trainer = trainerRepository.findByUsername(trainingCreateDto.getTrainer())
-                .orElseThrow(() -> new IllegalArgumentException("There is no trainer with username: " + trainingCreateDto.getTrainer()));
+        var trainer = trainerRepository.findByUsername(myName)
+                .orElseThrow(() -> new IllegalArgumentException("There is no trainer with username: " + myName));
 
         Training training = modelMapper.map(trainingCreateDto, Training.class);
         training.setTrainee(trainee);
@@ -43,26 +43,19 @@ public class TrainingService {
         trainingRepository.create(training);
     }
 
-    public List<Training> findByTraineeUsername(String username, String password) {
-        Authenticator.authenticateUser(username, password, traineeRepository::findByUsername);
-        return trainingRepository.findByTraineeUsername(username);
-    }
-
-    public List<Training> findByTrainerUsername(String username, String password) {
-        Authenticator.authenticateUser(username, password, trainerRepository::findByUsername);
-        return trainingRepository.findByTrainerUsername(username);
-    }
 
     public List<GetTraineeTrainingsResponse> findTrainingsForTrainee(String username, String password, String traineeUsername, Date fromDate, Date toDate, String trainerName, String trainingType) {
-        Authenticator.authenticateUser(username, password, traineeRepository::findByUsername);
-        List<Training> trainings = trainingRepository.findTrainingsByCriteria(traineeUsername, fromDate, toDate, trainerName, "trainee", trainingType);
+        var myName= SecurityContextHolder.getContext().getAuthentication().getName();
+
+        List<Training> trainings = trainingRepository.findTrainingsByCriteria(myName, fromDate, toDate, trainerName, "trainee", trainingType);
 
         return trainings.stream().map(x -> modelMapper.map(x, GetTraineeTrainingsResponse.class)).collect(Collectors.toList());
     }
 
     public List<GetTrainerTrainingsResponse> findTrainingsForTrainer(String username, String password, String trainerUsername, Date fromDate, Date toDate, String traineeName) {
-        Authenticator.authenticateUser(username, password, trainerRepository::findByUsername);
-        List<Training> trainings = trainingRepository.findTrainingsByCriteria(trainerUsername, fromDate, toDate, traineeName, "trainer", null);
+        var myName= SecurityContextHolder.getContext().getAuthentication().getName();
+
+        List<Training> trainings = trainingRepository.findTrainingsByCriteria(myName, fromDate, toDate, traineeName, "trainer", null);
 
         return trainings.stream().map(x -> modelMapper.map(x, GetTrainerTrainingsResponse.class)).collect(Collectors.toList());
     }

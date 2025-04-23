@@ -30,9 +30,9 @@ public class TraineeController implements TraineeApi {
     private final Timer timer;
 
     @Override
-    @PostMapping()
+    @PostMapping("/signup")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserCredentialsDto register(@Valid @RequestBody TraineeRegistrationRequest registrationDto) {
+    public String register(@Valid @RequestBody TraineeRegistrationRequest registrationDto) {
         counter.increment();
         return timer.record(() -> traineeService.create(registrationDto));
     }
@@ -40,8 +40,8 @@ public class TraineeController implements TraineeApi {
     @Override
     @GetMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public void login(@Valid @RequestBody UserCredentialsDto auth) {
-        traineeService.login(auth);
+    public String login(@Valid @RequestBody UserCredentialsDto auth) {
+        return traineeService.login(auth);
     }
 
     @Override
