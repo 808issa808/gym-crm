@@ -33,7 +33,7 @@ public interface TraineeApi {
             @ApiResponse(responseCode = "201", description = "Trainee created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
-    UserCredentialsDto register(TraineeRegistrationRequest registrationDto);
+    String register(TraineeRegistrationRequest registrationDto);
 
     @Operation(summary = "Authenticate trainee",
             description = "Validates trainee credentials",
@@ -47,7 +47,7 @@ public interface TraineeApi {
     @ApiResponses({
             @ApiResponse(responseCode = "401", description = "Invalid credentials")
     })
-    void login(UserCredentialsDto auth);
+    String login(UserCredentialsDto auth);
 
     @Operation(summary = "Change password",
             description = "Updates trainee's password",

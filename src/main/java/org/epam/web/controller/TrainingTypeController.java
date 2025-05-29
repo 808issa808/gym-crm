@@ -20,6 +20,6 @@ public class TrainingTypeController implements TrainingTypeApi {
     @Override
     @GetMapping
     public List<TrainingType> getAll(@Valid @RequestBody UserCredentialsDto auth) {
-        return trainingTypeService.getAll(auth);
+        return trainingTypeService.getAll();
     }
 }

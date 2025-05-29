@@ -14,7 +14,7 @@ import java.util.List;
 @Entity
 @Table(name = "trainees")
 @PrimaryKeyJoinColumn(name = "id")
-public class Trainee extends User {
+public class Trainee extends User  {
 
     @Column(name = "date_of_birth")
     private Date dateOfBirth;

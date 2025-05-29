@@ -28,7 +28,7 @@ public interface TrainerApi {
             @ApiResponse(responseCode = "201", description = "Trainer created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
-    UserCredentialsDto register(TrainerRegistrationRequest registrationDto);
+    String register(TrainerRegistrationRequest registrationDto);
 
     @Operation(summary = "Authenticate trainer",
             description = "Validates trainer credentials",
@@ -36,7 +36,7 @@ public interface TrainerApi {
                     content = @Content(schema = @Schema(implementation = UserCredentialsDto.class))
             ))
     @ApiResponse(responseCode = "401", description = "Invalid credentials")
-    void login(UserCredentialsDto auth);
+    String login(UserCredentialsDto auth);
 
     @Operation(summary = "Change password",
             description = "Updates trainer's password",
