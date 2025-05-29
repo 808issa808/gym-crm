@@ -44,7 +44,7 @@ public class TrainingService {
     }
 
 
-    public List<GetTraineeTrainingsResponse> findTrainingsForTrainee(String username, String password, String traineeUsername, Date fromDate, Date toDate, String trainerName, String trainingType) {
+    public List<GetTraineeTrainingsResponse> findTrainingsForTrainee(Date fromDate, Date toDate, String trainerName, String trainingType) {
         var myName= SecurityContextHolder.getContext().getAuthentication().getName();
 
         List<Training> trainings = trainingRepository.findTrainingsByCriteria(myName, fromDate, toDate, trainerName, "trainee", trainingType);
@@ -52,7 +52,7 @@ public class TrainingService {
         return trainings.stream().map(x -> modelMapper.map(x, GetTraineeTrainingsResponse.class)).collect(Collectors.toList());
     }
 
-    public List<GetTrainerTrainingsResponse> findTrainingsForTrainer(String username, String password, String trainerUsername, Date fromDate, Date toDate, String traineeName) {
+    public List<GetTrainerTrainingsResponse> findTrainingsForTrainer(Date fromDate, Date toDate, String traineeName) {
         var myName= SecurityContextHolder.getContext().getAuthentication().getName();
 
         List<Training> trainings = trainingRepository.findTrainingsByCriteria(myName, fromDate, toDate, traineeName, "trainer", null);

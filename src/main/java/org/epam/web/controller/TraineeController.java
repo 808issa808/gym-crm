@@ -56,20 +56,20 @@ public class TraineeController implements TraineeApi {
     public TraineeWithListDto getProfile(
             @Valid @RequestBody UserCredentialsDto auth,
             @Parameter(description = "Username of trainee to fetch") @PathVariable("username") String username) {
-        return traineeService.findByUsername(auth, username);
+        return traineeService.findByUsername(username);
     }
 
     @Override
     @PutMapping("/{username}")
     public TraineeWithListDto update(@Valid @RequestBody TraineeUpdateRequest request) {
-        return traineeService.update(request.getUserCredentialsDto(), request.getTraineeDto());
+        return traineeService.update(request.getTraineeDto());
     }
 
     @Override
     @DeleteMapping("/{username}")
     @ResponseStatus(HttpStatus.OK)
     public void delete(@Valid @RequestBody UserCredentialsDto auth) {
-        traineeService.deleteTraineeByUsername(auth);
+        traineeService.deleteTraineeByUsername();
     }
 
     @Override
@@ -81,14 +81,14 @@ public class TraineeController implements TraineeApi {
     @Override
     @PutMapping("/{username}/trainers-list")
     public List<TrainerShortDto> updateTrainersList(@Valid @RequestBody UpdateTrainersRequest request) {
-        return traineeService.updateTrainersList(request.getLoginDto(), request.getUpdateUsernames());
+        return traineeService.updateTrainersList(request.getUpdateUsernames());
     }
 
     @Override
     @PatchMapping("/{username}")
     @ResponseStatus(HttpStatus.OK)
     public void toggleActivate(@Valid @RequestBody UserCredentialsDto auth) {
-        traineeService.switchActivate(auth);
+        traineeService.switchActivate();
     }
 
     @Override
@@ -97,9 +97,6 @@ public class TraineeController implements TraineeApi {
             @Valid @RequestBody TraineeTrainingsRequest request,
             @Parameter(description = "Trainee username") @PathVariable("username") String username) {
         return trainingService.findTrainingsForTrainee(
-                request.getAuth().getUsername(),
-                request.getAuth().getPassword(),
-                username,
                 request.getPeriodFrom(),
                 request.getPeriodTo(),
                 request.getTrainer(),

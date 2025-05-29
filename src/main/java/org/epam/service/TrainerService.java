@@ -59,7 +59,7 @@ public class TrainerService {
         return jwtService.generateToken(authed);
     }
 
-    public TrainerWithListDto findByUsername(UserCredentialsDto auth, String searchedUsername) {
+    public TrainerWithListDto findByUsername(String searchedUsername) {
         var trainer = trainerRepository.findByUsername(searchedUsername)
                 .orElseThrow(() -> new NoSuchElementException("There is no trainer with username: " + searchedUsername));
 
@@ -78,7 +78,7 @@ public class TrainerService {
     }
 
     @Transactional
-    public TrainerWithListDto update(UserCredentialsDto auth, TrainerDto trainerDto) {
+    public TrainerWithListDto update(TrainerDto trainerDto) {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         if (!currentUsername.equals(trainerDto.getUsername())) {
@@ -99,7 +99,7 @@ public class TrainerService {
     }
 
     @Transactional
-    public void switchActivate(UserCredentialsDto auth) {
+    public void switchActivate() {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Trainer trainer = trainerRepository.findByUsername(currentUsername)

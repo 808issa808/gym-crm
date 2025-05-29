@@ -51,20 +51,20 @@ public class TrainerController implements TrainerApi {
     public TrainerWithListDto getProfile(
             @Valid @RequestBody UserCredentialsDto auth,
             @Parameter(description = "Username of trainer to fetch") @PathVariable("username") String searched) {
-        return trainerService.findByUsername(auth, searched);
+        return trainerService.findByUsername(searched);
     }
 
     @Override
     @PutMapping("/{username}")
     public TrainerWithListDto update(@Valid @RequestBody TrainerUpdateRequest request) {
-        return trainerService.update(request.getAuth(), request.getTrainerDto());
+        return trainerService.update(request.getTrainerDto());
     }
 
     @Override
     @PatchMapping("/{username}")
     @ResponseStatus(HttpStatus.OK)
     public void toggleActivate(@Valid @RequestBody UserCredentialsDto auth) {
-        trainerService.switchActivate(auth);
+        trainerService.switchActivate();
     }
 
     @Override
@@ -73,9 +73,6 @@ public class TrainerController implements TrainerApi {
             @Valid @RequestBody TrainerTrainingsRequest request,
             @Parameter(description = "Trainer username") @PathVariable("username") String username) {
         return trainingService.findTrainingsForTrainer(
-                request.getAuth().getUsername(),
-                request.getAuth().getPassword(),
-                username,
                 request.getPeriodFrom(),
                 request.getPeriodTo(),
                 request.getTrainee());

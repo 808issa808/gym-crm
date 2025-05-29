@@ -48,12 +48,6 @@ public class TraineeService {
         );
         String password = UserUtil.generatePassword();
 
-        System.out.println("---------------------------------------");
-        System.out.println();
-        System.out.println(password);
-        System.out.println();
-        System.out.println("---------------------------------------");
-
         trainee.setUsername(username);
         trainee.setPassword(encoder.encode(password));
         traineeRepository.save(trainee);
@@ -85,7 +79,7 @@ public class TraineeService {
     }
 
     @Transactional
-    public TraineeWithListDto update(UserCredentialsDto auth, TraineeDto traineeDto) {
+    public TraineeWithListDto update(TraineeDto traineeDto) {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Trainee trainee = traineeRepository.findByUsername(currentUsername)
@@ -97,7 +91,7 @@ public class TraineeService {
         return modelMapper.map(trainee, TraineeWithListDto.class);
     }
 
-    public TraineeWithListDto findByUsername(UserCredentialsDto auth, String searchedUsername) {
+    public TraineeWithListDto findByUsername(String searchedUsername) {
         Trainee trainee = traineeRepository.findByUsername(searchedUsername)
                 .orElseThrow(() -> new NoSuchElementException("No trainee with username: " + searchedUsername + " exists."));
 
@@ -113,7 +107,7 @@ public class TraineeService {
     }
 
     @Transactional
-    public List<TrainerShortDto> updateTrainersList(UserCredentialsDto auth, TrainerListPutDto trainerListPutDto) {
+    public List<TrainerShortDto> updateTrainersList(TrainerListPutDto trainerListPutDto) {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Trainee updating = traineeRepository.findByUsername(currentUsername)
@@ -133,7 +127,7 @@ public class TraineeService {
     }
 
     @Transactional
-    public void switchActivate(UserCredentialsDto auth) {
+    public void switchActivate() {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Trainee trainee = traineeRepository.findByUsername(currentUsername)
@@ -144,7 +138,7 @@ public class TraineeService {
     }
 
     @Transactional
-    public void deleteTraineeByUsername(UserCredentialsDto auth) {
+    public void deleteTraineeByUsername() {
         String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
 
         Trainee trainee = traineeRepository.findByUsername(currentUsername)
