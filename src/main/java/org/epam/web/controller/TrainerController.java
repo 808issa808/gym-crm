@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.epam.service.TrainerService;
 import org.epam.service.TrainingService;
+import org.epam.service.workload.dto.TrainerSummary;
 import org.epam.web.controller.swaggerInterface.TrainerApi;
 import org.epam.web.dto.training.GetTrainerTrainingsResponse;
 import org.epam.web.dto.training.TrainerTrainingsRequest;
@@ -30,6 +31,11 @@ public class TrainerController implements TrainerApi {
     @ResponseStatus(HttpStatus.CREATED)
     public String register(@Valid @RequestBody TrainerRegistrationRequest registrationDto) {
         return trainerService.create(registrationDto);
+    }
+
+    @GetMapping("/summary/{username}")
+    public TrainerSummary getSummary(@PathVariable String username) {
+        return trainingService.getSummary(username);
     }
 
     @Override

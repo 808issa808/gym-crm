@@ -6,6 +6,7 @@ import io.micrometer.core.instrument.Timer;
 import org.epam.model.Trainee;
 import org.epam.model.Trainer;
 import org.epam.model.Training;
+import org.epam.service.workload.dto.UpdateReport;
 import org.epam.web.dto.training.GetTraineeTrainingsResponse;
 import org.epam.web.dto.training.GetTrainerTrainingsResponse;
 import org.epam.web.dto.users.UserShortDto;
@@ -16,6 +17,9 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.time.ZoneId;
+import java.util.Date;
 
 @Configuration
 public class HibernateWebAppConfig {
@@ -55,6 +59,20 @@ public class HibernateWebAppConfig {
         modelMapper.typeMap(Training.class, GetTrainerTrainingsResponse.class).addMappings(mapper -> {
             mapper.map(src -> src.getTrainee().getFirstName(), GetTrainerTrainingsResponse::setTraineeName);
             mapper.map(src -> src.getType().getTrainingTypeName(), GetTrainerTrainingsResponse::setType);
+        });
+
+        modelMapper.typeMap(Training.class, UpdateReport.class).addMappings(mapper -> {
+            mapper.map(src -> src.getTrainer().getUsername(), UpdateReport::setUsername);
+            mapper.map(src -> src.getTrainer().getFirstName(), UpdateReport::setFirstname);
+            mapper.map(src -> src.getTrainer().getLastName(), UpdateReport::setLastname);
+            mapper.map(src -> src.getTrainer().isActive(), UpdateReport::setActive);
+            mapper.using(ctx -> {
+                Date date = (Date) ctx.getSource();
+                return date.toInstant()
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+            }).map(Training::getDate, UpdateReport::setTrainingDate);
+            mapper.map(src -> src.getDuration(), UpdateReport::setDuration);
         });
 
         return modelMapper;

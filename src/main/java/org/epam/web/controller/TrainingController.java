@@ -20,4 +20,8 @@ public class TrainingController implements TrainingApi {
     public void add(@Valid @RequestBody TrainingCreateDto trainingCreateDto) {
         trainingService.create(trainingCreateDto);
     }
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Integer id) {
+        trainingService.deleteTrainingById(id);
+    }
 }
