@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.epam.data.impl.TraineeRepositoryImpl;
 import org.epam.data.impl.TrainerRepositoryImpl;
 import org.epam.data.impl.TrainingRepositoryImpl;
-import org.epam.model.Trainee;
 import org.epam.model.Training;
 import org.epam.service.workload.WorkloadService;
 import org.epam.service.workload.dto.TrainerSummary;
@@ -62,7 +61,7 @@ public class TrainingService {
         var training = trainingRepository.findTrainingById(id)
                 .orElseThrow(() -> new NoSuchElementException("Training with id: " + id + " not found"));
 
-        if (training.getTrainer().getUsername() == currentUsername) {
+        if (!training.getTrainer().getUsername().equals(currentUsername)) {
             throw new ForbiddenException("Not allowed to delete not your training");
         }
 

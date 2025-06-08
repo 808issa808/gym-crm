@@ -1,10 +1,8 @@
 package org.epam.service.workload.dto;
 
-
 import lombok.Data;
 
-import java.time.Month;
-import java.util.Map;
+import java.util.List;
 
 @Data
 public class TrainerSummary {
@@ -12,5 +10,5 @@ public class TrainerSummary {
     private String trainerFirstname;
     private String trainerLastname;
     private boolean isActive;
-    private Map<Integer, Map<Month, Integer>> summaryMap;
+    private List<YearSummary> yearSummaries;
 }
