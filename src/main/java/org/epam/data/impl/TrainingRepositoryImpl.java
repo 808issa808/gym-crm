@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Repository
@@ -92,5 +93,26 @@ public class TrainingRepositoryImpl implements TrainingRepository {
         entityManager.persist(training);
         log.debug("Training created successfully with ID '{}'", training.getId());
         return training;
+    }
+
+    public Optional<Training> findTrainingById(Integer id) {
+        log.debug("Fetching training by id '{}'", id);
+        var training = entityManager.find(Training.class, id);
+        if (training == null) {
+            return Optional.empty();
+        } else
+            return Optional.of(training);
+    }
+
+    public void delete(Training training) {
+        log.info("Deleting training with id '{}'", training.getId());
+
+        var existingTraining = entityManager.find(Training.class, training.getId());
+        if (existingTraining != null) {
+            entityManager.remove(existingTraining);
+            log.info("training '{}' deleted successfully", training.getId());
+        } else {
+            log.warn("No training found with id '{}' to delete", training.getId());
+        }
     }
 }
