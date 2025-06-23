@@ -1,14 +1,12 @@
 package org.epam.service.workload.inf;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import org.epam.service.workload.FeignClientConfig;
 import org.epam.service.workload.app.WorkloadWriteClient;
 import org.epam.service.workload.dto.UpdateReport;
-import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "workload", contextId = "workloadWriteClient", configuration = FeignClientConfig.class)
+//@FeignClient(name = "workload", contextId = "workloadWriteClient", configuration = FeignClientConfig.class)
 public interface WorkloadWriteRestClient extends WorkloadWriteClient {
     @Override
     @PostMapping("/trainer-summary")
