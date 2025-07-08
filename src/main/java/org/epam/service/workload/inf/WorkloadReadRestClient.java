@@ -8,7 +8,6 @@ import org.epam.service.workload.dto.TrainerSummary;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
 import java.util.NoSuchElementException;
 
 @FeignClient(name = "workload", contextId = "workloadReadClient", configuration = FeignClientConfig.class)
