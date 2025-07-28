@@ -31,7 +31,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@Import(TrainingService.class)
 @ActiveProfiles("test")
 @Transactional
 class TrainingServiceComponentTest {
@@ -104,7 +103,7 @@ class TrainingServiceComponentTest {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(testTrainer.getUsername(), testTrainer.getPassword()));
 
-        TrainingCreateDto createDto = new TrainingCreateDto();
+        TrainingCreateDto createDto = TrainingCreateDto.builder().build();
         createDto.setTrainee(testTrainee.getUsername());
         createDto.setName("Evening Yoga");
         createDto.setDate(new Date());
@@ -122,7 +121,7 @@ class TrainingServiceComponentTest {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(testTrainer.getUsername(), testTrainer.getPassword()));
 
-        TrainingCreateDto createDto = new TrainingCreateDto();
+        TrainingCreateDto createDto =  TrainingCreateDto.builder().build();
         createDto.setTrainee("nonexistent.trainee");
         createDto.setName("Evening Yoga");
         createDto.setDate(new Date());

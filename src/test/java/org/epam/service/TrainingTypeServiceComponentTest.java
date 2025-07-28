@@ -14,7 +14,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@Import(TrainingTypeService.class)
 @ActiveProfiles("test")
 @Transactional
 class TrainingTypeServiceComponentTest {

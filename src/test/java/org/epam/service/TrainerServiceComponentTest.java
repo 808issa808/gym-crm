@@ -30,7 +30,6 @@ import java.util.NoSuchElementException;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@Import(TrainerService.class)
 @ActiveProfiles("test")
 @Transactional
 class TrainerServiceComponentTest {
