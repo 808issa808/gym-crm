@@ -5,12 +5,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import lombok.Builder;
 import lombok.Data;
 import org.epam.web.dto.users.UserCredentialsDto;
 
 import java.util.Date;
 
 @Data
+@Builder
 public class TrainingCreateDto {
     @NotNull
     @Valid
