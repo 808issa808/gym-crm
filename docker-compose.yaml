@@ -1,0 +1,89 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:14
+    container_name: postgres1
+    environment:
+      POSTGRES_USER: real_issa
+      POSTGRES_PASSWORD: mysecret
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - backend
+
+  mongo:
+    image: mongo:6.0
+    container_name: mongo1
+    environment:
+      MONGO_INITDB_DATABASE: workload
+    ports:
+      - "27018:27017"
+    networks:
+      - backend
+
+  kafka:
+    image: bitnami/kafka:3.7.0
+    environment:
+      - KAFKA_CFG_PROCESS_ROLES=broker,controller
+      - KAFKA_CFG_NODE_ID=1
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    ports:
+      - "29092:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - backend
+
+  gym-crm:
+    image: gym-crm
+    container_name: gym-crm1
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - kafka
+      - eureka
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: real_issa
+      SPRING_DATASOURCE_PASSWORD: mysecret
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - backend
+
+  workload:
+    image: workload
+    container_name: workload1
+    ports:
+      - "8181:8181"
+    depends_on:
+      - mongo
+      - eureka
+      - kafka
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://mongo:27017/workload
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - backend
+
+  eureka:
+    image: eureka
+    container_name: eureka1
+    ports:
+      - "8761:8761"
+    networks:
+      - backend
+
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  kafka-data:
